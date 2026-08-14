@@ -2,14 +2,16 @@
 
 > AI 驱动的长跑训练助手 —— 课表管理、训练数据智能识别、AI 点评与课表生成、全方位训练数据分析
 
-PaceCoach 是一个面向长跑爱好者（5K / 10K / 半马 / 全马）的智能训练指导系统。它通过 **VLM 视觉模型**自动识别训练 App 截图中的数据（含心率/配速/步频/海拔等折线图趋势），结合 **LLM 大模型**为跑者提供专业的训练点评、课表生成与个性化建议。
+PaceCoach 是一个面向长跑爱好者（5K / 10K / 半马 / 全马）的智能训练指导系统。AI 层全部基于 **DeepSeek API**（文本对话/点评/课表生成）。由于 DeepSeek 无多模态能力，截图识图采用**双路径**：优先通过本地 **DsBridge 多模态网关**（OCR/视觉模型 → 文本 → DeepSeek），网关不可用时自动降级为内置 **tesseract.js OCR + 模板解析**。支持桌面版（Electron）与 Android APK。
 
 ## ✨ 核心特性
 
 ### 🤖 AI 智能能力（5 大）
-- **VLM 训练数据识别**：上传跑步 App 长图（华为运动健康/Garmin/Strava/Keep 等），自动提取距离、时长、配速、心率、步频、步幅、爬升、卡路里、VO2max、心率恢复、触地时间、垂直振幅、左右平衡等 20+ 项数据
-- **折线图趋势识别**：从截图中识别心率曲线、配速曲线、步频曲线、海拔曲线、分段配速 5 类折线图，采样 15-25 个数据点，并生成趋势分析描述
-- **LLM 训练点评**：对比计划与实际完成，分析完成度、强度匹配、**折线图趋势**、心率区间、疲劳管理，给出评分与建议
+- **截图识图（双路径）**：上传跑步 App 长图（华为运动健康/Garmin/Strava/Keep 等），自动提取距离、时长、配速、心率、步频、步幅、爬升、卡路里、VO2max、心率恢复、触地时间、垂直振幅、左右平衡等 20+ 项数据
+  - **路径① DsBridge 网关**（推荐）：本地 OpenAI 兼容网关，图片 → OCR/视觉模型（可读折线图）→ 文本 → DeepSeek，识别最完整
+  - **路径② 内置 OCR 兜底**：tesseract.js（中文+英文）服务端识别 + 模板/正则解析，离线可用、零额外依赖
+- **折线图趋势识别**：DsBridge 路径下可提取心率/配速/步频/海拔曲线（15-25 个采样点）并生成趋势分析描述
+- **LLM 训练点评**：对比计划与实际完成，分析完成度、强度匹配、心率区间、疲劳管理，给出评分与建议
 - **LLM 课表生成**：基于跑者档案 + 目标赛事 + 上周完成情况 + 上周点评，周期化生成下周训练课表；支持本周微调
 - **🆕 对话式课表生成**：与 AI 教练自由对话，AI 主动询问身体状况、停跑恢复、伤病、时间安排等特殊情况，收集完整信息后生成量身定制的个性化课表
 
@@ -50,7 +52,9 @@ PaceCoach 是一个面向长跑爱好者（5K / 10K / 半马 / 全马）的智�
 | 框架 | Next.js 16 (App Router) + TypeScript 5 |
 | 样式 | Tailwind CSS 4 + shadcn/ui (New York) + Lucide 图标 |
 | 数据库 | Prisma ORM + SQLite |
-| AI | z-ai-web-dev-sdk（VLM 视觉识别 + LLM 文本生成）|
+| AI | DeepSeek API（deepseek-chat）+ DsBridge 多模态网关 + tesseract.js OCR |
+| 桌面端 | Electron（内嵌 Next.js standalone 服务器）|
+| 移动端 | Capacitor + Android（GitHub Actions 构建 APK）|
 | 图表 | Recharts（折线/面积/柱状/饼图/雷达）|
 | Markdown | react-markdown（AI 输出渲染）|
 
@@ -184,19 +188,11 @@ ZAI_API_KEY=your_api_key_here
 ### 方式二：配置文件
 
 在项目根目录创建 `.z-ai-config` 文件（参考 `.z-ai-config.example`）：
-
-```json
-{
-  "baseUrl": "https://api.z.ai/api/paas/v4",
-  "apiKey": "your_api_key_here"
-}
-```
+> ⚠️ 该机制为兼容 Z.ai 时代的遗留，现版本已迁移到 DeepSeek，一般无需配置。
 
 ### 配置优先级（从高到低）
-1. **环境变量** `ZAI_BASE_URL` / `ZAI_API_KEY`（自动生成 .z-ai-config）
-2. **项目根目录** `.z-ai-config` 文件
-3. **用户主目录** `~/.z-ai-config`
-4. **系统级** `/etc/.z-ai-config`
+1. **环境变量** `DEEPSEEK_API_KEY` / `DEEPSEEK_API_URL` / `DEEPSEEK_VISION_API_URL`
+2. **项目根目录** `.env` 文件
 
 ### 查看当前配置
 
@@ -206,15 +202,16 @@ ZAI_API_KEY=your_api_key_here
 
 ```bash
 # 1. 克隆项目
-git clone <repo-url>
-cd pacecoach
+git clone https://github.com/JustPlayinger/PaceCoach.git
+cd PaceCoach
 
 # 2. 安装依赖
 bun install
 
 # 3. 配置环境变量
 cp .env.example .env
-# 编辑 .env，填入你的 ZAI_API_KEY
+# 编辑 .env，填入你的 DEEPSEEK_API_KEY（https://platform.deepseek.com 申请）
+# 可选：DEEPSEEK_VISION_API_URL 指向本地 DsBridge 网关（见下方「截图识图」）
 
 # 4. 初始化数据库
 bun run db:push
@@ -222,6 +219,46 @@ bun run db:push
 # 5. 启动开发服务器
 bun run dev
 ```
+
+## 🖥️ 桌面版（Electron）
+
+桌面版内嵌 Next.js standalone 服务器 + SQLite 数据库，离线可用（仅 DeepSeek 调用需联网）。
+
+```powershell
+# 打包桌面版（Windows）
+powershell -ExecutionPolicy Bypass -File scripts/build-desktop.ps1
+# 产物：desktop/release/PaceCoach Setup 1.0.0.exe（安装包） + PaceCoach 1.0.0.exe（便携版）
+```
+
+- 首次启动会弹出设置窗口，填写 DeepSeek API Key（本地保存）
+- 数据库与配置存放在 `%APPDATA%\PaceCoach`（可写目录，升级不丢数据）
+- 截图识图：本机运行 DsBridge 网关后识别最完整；否则自动用内置 OCR
+
+## 📱 Android APK
+
+APK 为纯前端客户端（静态导出），所有数据/AI/OCR 请求转发到**远程 PaceCoach 服务器**（首次使用在「数据管理」Tab 配置服务器地址，如 `https://your-server.com` 或局域网 `http://192.168.x.x:3000`）。
+
+```bash
+# 方式一：GitHub Actions 自动构建（推荐，无需本地 Android SDK）
+# 推送到 main 分支后，Actions → Build Android APK → 下载产物
+
+# 方式二：本机构建（需 Android Studio + JDK 17）
+bash scripts/build-android.sh
+# 产物：android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+> ⚠️ APK 需要搭配已部署的 PaceCoach 后端使用（可部署在任意 VPS，或本机通过内网穿透暴露）。
+
+## 🖼️ 截图识图（DeepSeek 无多模态的解决方案）
+
+DeepSeek API 官方不支持图片输入。PaceCoach 采用双路径：
+
+| 路径 | 原理 | 优点 | 依赖 |
+|------|------|------|------|
+| ① DsBridge 网关 | 本地 OpenAI 兼容网关拦截 `image_url` → OCR/视觉模型 → 文本 → DeepSeek | 识别最完整（可读折线图）；方案 A 免费本地 OCR | 需安装并启动 [ds-multimodal-bridge](https://github.com/JustPlayinger/ds-multimodal-bridge) |
+| ② 内置 OCR | tesseract.js（chi_sim+eng）服务端识别 → 模板/正则解析 → DeepSeek 文本解析补全 | 零依赖、离线可用 | 无（语言包已随仓库提供） |
+
+应用启动时自动探测路径①（`http://127.0.0.1:8901/health`），不可达则走路径②，无需任何手动切换。
 
 ## 📖 使用指南
 
