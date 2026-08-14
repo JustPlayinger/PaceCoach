@@ -1,4 +1,4 @@
-# =====================================================
+﻿# =====================================================
 # PaceCoach 桌面版构建脚本（Windows）
 # 用法: powershell -ExecutionPolicy Bypass -File scripts/build-desktop.ps1
 # 产物: desktop/release/PaceCoach Setup*.exe 与 PaceCoach*.exe (portable)
@@ -65,4 +65,7 @@ if ($LASTEXITCODE -ne 0) { throw "electron-builder 打包失败" }
 
 Write-Host ""
 Write-Host "✅ 完成！产物位于: desktop\release\" -ForegroundColor Green
-Get-ChildItem "release" -Filter "*.exe" | ForEach-Object { Write-Host "   - $($_.Name) ($([math]::Round($_.Length/1MB,1)) MB)" }
+Get-ChildItem "release" -Filter "*.exe" | ForEach-Object {
+  $sizeMb = [math]::Round($_.Length / 1MB, 1)
+  Write-Host ("   - {0} ({1} MB)" -f $_.Name, $sizeMb)
+}
