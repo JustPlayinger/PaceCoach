@@ -75,8 +75,8 @@ workspace-*
 /android/captures/
 *.keystore
 
-# ===== 轻量版子项目（独立发布在 PaceOn-lite 仓库） =====
-/paceon-lite/
+# ===== 轻量版子项目（独立发布在 PaceCoach-lite 仓库） =====
+/pacecoach-lite/
 
 # ===== APK 构建产物 =====
 /download/*.apk
