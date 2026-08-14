@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { getApiBase, setApiBase } from '@/lib/mobile-api'
+import { isOfflineModeEnabled, setOfflineMode, getDeepseekConfig, setDeepseekConfig } from '@/lib/offline'
 
 interface ImportResult {
   runner: number
@@ -30,10 +31,14 @@ export function DataView({ onDataChanged }: { onDataChanged: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [aiConfig, setAiConfig] = useState<{ configured: boolean; source: string; baseUrl?: string; hasApiKey: boolean } | null>(null)
   const [apiBaseInput, setApiBaseInput] = useState('')
+  const [offlineEnabled, setOfflineEnabled] = useState(false)
+  const [dsKeyInput, setDsKeyInput] = useState('')
 
   useEffect(() => {
     fetch('/api/config').then(r => r.json()).then(d => setAiConfig(d)).catch(() => {})
     setApiBaseInput(getApiBase() || '')
+    setOfflineEnabled(isOfflineModeEnabled())
+    setDsKeyInput(getDeepseekConfig().apiKey || '')
   }, [])
 
   const handleExport = async () => {
@@ -193,6 +198,75 @@ ZAI_API_KEY=your_api_key`}</code></pre>
           </div>
         </div>
       )}
+
+      {/* 离线模式（纯前端本地运行） */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <Database className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-slate-800">离线模式（本地运行）</h3>
+            <p className="text-xs text-slate-500">数据保存在手机本地（SQLite），AI 直连 DeepSeek，无需服务器</p>
+          </div>
+          <Badge variant={offlineEnabled ? 'default' : 'outline'} className={offlineEnabled ? 'bg-emerald-600' : ''}>
+            {offlineEnabled ? '已启用' : '未启用'}
+          </Badge>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs text-slate-500 mb-1.5 block">DeepSeek API Key（离线模式用）</Label>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-emerald-500"
+                placeholder="sk-..."
+                value={dsKeyInput}
+                onChange={(e) => setDsKeyInput(e.target.value)}
+              />
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (!dsKeyInput.trim()) { toast({ title: '请填写 API Key', variant: 'destructive' }); return }
+                  setDeepseekConfig(dsKeyInput.trim())
+                  toast({ title: '✅ 已保存', description: 'DeepSeek 配置已保存到本地' })
+                }}
+                className="gap-1.5"
+              >
+                <Settings className="h-4 w-4" />保存
+              </Button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                setOfflineMode(true)
+                setOfflineEnabled(true)
+                toast({ title: '✅ 已启用离线模式', description: '刷新页面后生效' })
+              }}
+              disabled={offlineEnabled}
+              className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 flex-1"
+            >
+              <Database className="h-4 w-4" />启用离线模式
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOfflineMode(false)
+                setOfflineEnabled(false)
+                toast({ title: '已关闭离线模式', description: '刷新页面后生效' })
+              }}
+              disabled={!offlineEnabled}
+              className="gap-1.5 flex-1"
+            >
+              关闭
+            </Button>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Android APK 首次启动会自动启用离线模式。启用后所有数据存本地，仅 DeepSeek 调用需联网；AI 识图使用手机本地 OCR。
+          </p>
+        </div>
+      </div>
 
       {/* 远程 API 服务器（APK/静态导出模式） */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

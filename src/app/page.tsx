@@ -34,10 +34,15 @@ import { ProgressRing } from '@/components/views/progress-ring'
 import { weekToMarkdown, copyToClipboard, downloadTextFile, printWeek } from '@/components/views/export-utils'
 import type { Week, Runner, Session } from '@/components/views/types'
 import { patchFetch } from '@/lib/api-client'
+import { initOfflineMode, isOfflineModeEnabled } from '@/lib/offline'
 
-// APK/远程模式下，把所有 /api/* 请求转发到可配置的远程服务器
+// 离线模式（APK/静态导出）：初始化本地数据层 + 本地 API；否则启用远程服务器转发补丁
 if (typeof window !== 'undefined') {
-  patchFetch()
+  if (isOfflineModeEnabled()) {
+    initOfflineMode()
+  } else {
+    patchFetch()
+  }
 }
 
 type Tab = 'dashboard' | 'upload' | 'review' | 'trends' | 'load' | 'compare' | 'calendar' | 'goal' | 'templates' | 'shoes' | 'recovery' | 'records' | 'pace' | 'achievements' | 'history' | 'profile' | 'data'
@@ -77,9 +82,13 @@ export default function Home() {
   }, [loadRunner, loadWeeks, loadCurrentWeek])
 
   useEffect(() => {
-    // 数据初始加载，setState 在 await 之后，属合理用法
+    // 等待离线数据层初始化完成后再加载数据（非离线模式立即返回）
+    let active = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadAll()
+    initOfflineMode().then(() => {
+      if (active) loadAll()
+    })
+    return () => { active = false }
   }, [loadAll])
 
   // 首次无数据时自动种子
