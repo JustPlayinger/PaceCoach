@@ -242,7 +242,7 @@ APK 为纯前端客户端（静态导出），所有数据/AI/OCR 请求转发�
 # 方式一：GitHub Actions 自动构建（推荐，无需本地 Android SDK）
 # 推送到 main 分支后，Actions → Build Android APK → 下载产物
 
-# 方式二：本机构建（需 Android Studio + JDK 17）
+# 方式二：本机构建（需 Android Studio + JDK 21）
 bash scripts/build-android.sh
 # 产物：android/app/build/outputs/apk/debug/app-debug.apk
 ```
