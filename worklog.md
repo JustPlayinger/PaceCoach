@@ -1,15 +1,72 @@
 # PaceCoach · 智能长跑训练指导 - 工作日志
 
 ## 项目概述
-AI 驱动的长跑训练指导系统，集成 VLM 视觉识别（训练 App 长图数据提取）+ LLM 训练点评与课表生成。
+AI 驱动的长跑训练指导系统，集成 OCR/视觉识别（训练 App 长图数据提取）+ DeepSeek LLM 训练点评与课表生成。
 
 ## 技术栈
 - Next.js 16 (App Router) + TypeScript 5
 - Prisma ORM + SQLite
 - Tailwind CSS 4 + shadcn/ui
-- z-ai-web-dev-sdk (VLM + LLM)
-- Recharts (折线图可视化)
-- react-markdown (AI 输出渲染)
+- DeepSeek API（deepseek-chat）+ DsBridge 多模态网关 + tesseract.js OCR
+- Electron（桌面版）/ Capacitor + GitHub Actions（Android APK）
+- Recharts (折线图可视化) / react-markdown (AI 输出渲染)
+
+---
+
+## 2026-08-14 · DeepSeek 迁移 + 识图双路径 + 桌面版 + APK + GitHub 发布
+
+### 背景
+- DeepSeek API 官方**无多模态**能力，原代码调用不存在的 `deepseek-multi-modal` 模型（识图实际不可用）
+- 本机已安装 DsBridge（本地 OpenAI 兼容网关，图片→OCR/视觉→文本→DeepSeek）但未配置/运行
+
+### 完成内容
+
+**1. AI 层修正（src/lib/ai.ts）**
+- `callDeepseekApi` 统一模型 `deepseek-chat`，文本请求走官方 API，视觉请求走 `DEEPSEEK_VISION_API_URL`（默认 DsBridge 网关），增加超时（AbortController）
+- `extractTrainingDataFromImage` 双路径：① DsBridge 网关优先；② 内置 OCR 兜底（tesseract.js + 模板解析 + DeepSeek 文本解析）
+- 新增 `EXTRACT_PROMPT` / `OCR_PARSE_PROMPT`（模块级），配速格式归一化 `5'40"/km → 5:40/km`
+
+**2. 内置 OCR 模块（src/lib/ocr/）**
+- `ocr.ts`：tesseract.js v7 服务端封装，chi_sim+eng，本地语言包（public/ocr-lang，离线可用）
+- `parse.ts`：中英文标签锚点 + 正则解析（距离取分段最大值、时长、配速、心率、步频、卡路里、步数、速度、温度、天气等），数字空格归一化
+- `templates.ts`：来源 App 检测（Keep/Garmin/Strava/华为/咕咚/悦跑圈/高驰/颂拓等）
+- `next.config.ts` 增加 `serverExternalPackages: ['tesseract.js']`
+
+**3. 环境与基础设施**
+- `.env` 更新新 DeepSeek key + `DEEPSEEK_VISION_API_URL`；`.env.example` 创建；`.env` 从 git 跟踪移除
+- 修复 `DATABASE_URL`（原指向 `F:/PaceOn`（旧位置 0 字节空库），修正为 `F:/project/PaceOn`）
+- 安装 rapidocr_onnxruntime + onnxruntime 1.20.1（修复 NumPy 2.x 兼容）
+- DsBridge 配置写入 key 并启动（端口 8901）
+- `bun run build` 的 `cp -r` 替换为跨平台 `scripts/after-build.mjs`
+
+**4. 桌面版（Electron，desktop/）**
+- `main.js`：内嵌 Next.js standalone 服务器（ELECTRON_RUN_AS_NODE 子进程），自动选空闲端口，首启设置向导（DeepSeek Key / DsBridge 网关），配置与数据库放 `%APPDATA%\PaceCoach`
+- `scripts/build-desktop.ps1`：一键打包（含 electron-builder Defender 补丁）
+- 产物：`desktop/release/PaceCoach Setup 1.0.0.exe` + `PaceCoach 1.0.0.exe`（已验证运行）
+
+**5. Android APK（Capacitor）**
+- `npx cap add android` 生成工程
+- 静态导出方案：临时移开 `src/app/api`（export 不支持 route.ts）→ 构建 out/
+- 客户端 API 基址补丁 `src/lib/api-client.ts`（window.fetch 拦截 /api/* → 远程服务器），数据管理页新增服务器地址配置
+- `.github/workflows/build-apk.yml`：GitHub Actions 自动构建（ubuntu + JDK17 + Android SDK）并上传 APK
+
+**6. GitHub**
+- 新建仓库 `JustPlayinger/PaceCoach`（public），git 历史重建（避免旧 .env 泄露）
+- 4 个提交已推送，敏感文件（.env/db/node_modules/构建产物）已从仓库排除
+
+### 验证结果
+- DsBridge 识图端到端：华为运动健康截图 → 10km / 5:40/km / HR167/186 / 步频164 / 781kcal / 折线图21点 ✓
+- 内置 OCR 兜底：同图 → 10km / 5:40/km / HR167/196 / 步频164 / 9313步 / 787kcal ✓
+- 对话式课表生成（DeepSeek 文本）：AI 主动追问脚踝疼痛/半马目标，回复专业 ✓
+- 桌面版（开发 + 打包后）：服务器自启、数据库连接、界面加载 ✓
+- 静态导出（CI 流程）：EXIT 0，out/ 完整 ✓
+- GitHub CI 构建 APK：已触发运行中
+
+### 遗留 / 说明
+- APK 为远程后端模式，需部署 PaceCoach 服务器后在「数据管理」配置地址
+- 桌面版识图：DsBridge 方案 A（本地 OCR）无折线图曲线；方案 B（Ollama+Qwen2.5-VL）可读图
+- DeepSeek API key 已在对话中明文出现，建议在 platform.deepseek.com 重置
+
 
 ---
 Task ID: 1-9
