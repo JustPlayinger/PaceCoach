@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PaceCoach</string>
+    <string name="title_activity_main">PaceCoach</string>
+    <string name="package_name">com.pacecoach.app</string>
+    <string name="custom_url_scheme">com.pacecoach.app</string>
+</resources>

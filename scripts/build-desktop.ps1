@@ -1,0 +1,45 @@
+# =====================================================
+# PaceCoach 桌面版构建脚本（Windows）
+# 用法: powershell -ExecutionPolicy Bypass -File scripts/build-desktop.ps1
+# 产物: desktop/release/PaceCoach Setup*.exe 与 PaceCoach*.exe (portable)
+# =====================================================
+$ErrorActionPreference = "Stop"
+$root = Split-Path -Parent $PSScriptRoot
+Set-Location $root
+
+Write-Host "==> [1/5] 构建 Next.js standalone..." -ForegroundColor Cyan
+bun run build
+if ($LASTEXITCODE -ne 0) { throw "bun run build 失败" }
+
+Write-Host "==> [2/5] 准备 desktop/server（standalone 运行目录）..." -ForegroundColor Cyan
+if (Test-Path "desktop\server") { Remove-Item "desktop\server" -Recurse -Force }
+New-Item -ItemType Directory -Path "desktop\server" -Force | Out-Null
+Copy-Item ".next\standalone\*" "desktop\server\" -Recurse -Force
+
+# 数据库随包携带（首次启动复制到用户目录）
+if (Test-Path "db\custom.db") {
+  New-Item -ItemType Directory -Path "desktop\server\db" -Force | Out-Null
+  Copy-Item "db\custom.db" "desktop\server\db\custom.db" -Force
+}
+
+# 移除 standalone 内联的 .env（路径固定不通用），由 main.js 按配置动态注入环境变量
+if (Test-Path "desktop\server\.env") { Remove-Item "desktop\server\.env" -Force }
+
+Write-Host "==> [3/5] 生成应用图标..." -ForegroundColor Cyan
+if (-not (Test-Path "desktop\build\icon.ico")) {
+  python scripts\make-icon.py
+}
+
+Write-Host "==> [4/5] 安装 electron / electron-builder..." -ForegroundColor Cyan
+Set-Location "$root\desktop"
+$env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/"
+bun install
+if ($LASTEXITCODE -ne 0) { throw "bun install 失败" }
+
+Write-Host "==> [5/5] 打包桌面应用..." -ForegroundColor Cyan
+bun run dist
+if ($LASTEXITCODE -ne 0) { throw "electron-builder 打包失败" }
+
+Write-Host ""
+Write-Host "✅ 完成！产物位于: desktop\release\" -ForegroundColor Green
+Get-ChildItem "desktop\release" -Filter "*.exe" | ForEach-Object { Write-Host "   - $($_.Name) ($([math]::Round($_.Length/1MB,1)) MB)" }

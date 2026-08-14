@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PaceCoach 设置</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: #f8fafc; color: #1e293b; }
+    .wrap { max-width: 520px; margin: 0 auto; padding: 28px 24px; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #334155; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+    input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
+    .hint { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.6; }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; background: #10b981; color: #fff; margin-top: 8px; }
+    .btn:hover { background: #059669; }
+    .status { font-size: 13px; margin-top: 12px; text-align: center; }
+    .ok { color: #059669; } .err { color: #dc2626; }
+    a { color: #10b981; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🏃 PaceCoach 设置</h1>
+    <p class="sub">首次使用请填写以下配置（本地保存，不会上传）</p>
+
+    <div class="field">
+      <label>DeepSeek API Key</label>
+      <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off">
+      <p class="hint">在 <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a> 申请。</p>
+    </div>
+
+    <div class="field">
+      <label>DeepSeek API 地址</label>
+      <input id="apiUrl" type="text" placeholder="https://api.deepseek.com/v1/chat/completions">
+    </div>
+
+    <div class="field">
+      <label>识图网关地址（DsBridge，可选）</label>
+      <input id="visionUrl" type="text" placeholder="http://127.0.0.1:8901/v1/chat/completions">
+      <p class="hint">
+        DeepSeek 无多模态能力。安装并启动
+        <a href="https://github.com/JustPlayinger/ds-multimodal-bridge" target="_blank">DsBridge</a>
+        后可实现截图识图（含折线图）；未启动时应用自动降级为内置 OCR。
+      </p>
+    </div>
+
+    <button class="btn" id="save">保存并启动</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id)
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const cfg = await window.pacecoachConfig.get()
+        $('apiKey').value = cfg.deepseekApiKey || ''
+        $('apiUrl').value = cfg.deepseekApiUrl || 'https://api.deepseek.com/v1/chat/completions'
+        $('visionUrl').value = cfg.visionApiUrl || 'http://127.0.0.1:8901/v1/chat/completions'
+      } catch (e) {
+        $('status').textContent = '读取配置失败: ' + e.message
+        $('status').className = 'status err'
+      }
+    })
+
+    $('save').addEventListener('click', async () => {
+      const key = $('apiKey').value.trim()
+      if (!key) {
+        $('status').textContent = '请填写 DeepSeek API Key'
+        $('status').className = 'status err'
+        return
+      }
+      try {
+        await window.pacecoachConfig.save({
+          deepseekApiKey: key,
+          deepseekApiUrl: $('apiUrl').value.trim() || 'https://api.deepseek.com/v1/chat/completions',
+          visionApiUrl: $('visionUrl').value.trim() || 'http://127.0.0.1:8901/v1/chat/completions',
+        })
+        $('status').textContent = '✅ 配置已保存'
+        $('status').className = 'status ok'
+        setTimeout(() => window.pacecoachConfig.ready(), 300)
+      } catch (e) {
+        $('status').textContent = '保存失败: ' + e.message
+        $('status').className = 'status err'
+      }
+    })
+  </script>
+</body>
+</html>

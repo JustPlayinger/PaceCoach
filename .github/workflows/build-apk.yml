@@ -1,0 +1,87 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: apk-build
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Generate Prisma Client
+        run: bunx prisma generate
+
+      # 静态导出（APK 纯前端）：临时移开 API 路由 + 切换 export 模式
+      - name: Static export build
+        run: |
+          set -e
+          cp next.config.ts next.config.ts.bak
+          mv src/app/api /tmp/paceon-api-backup
+          cat > next.config.ts << 'EOF'
+          import type { NextConfig } from "next";
+
+          const nextConfig: NextConfig = {
+            output: "export",
+            images: { unoptimized: true },
+            typescript: { ignoreBuildErrors: true },
+            reactStrictMode: false,
+            trailingSlash: true,
+          };
+
+          export default nextConfig;
+          EOF
+          bun run build
+          # OCR 语言包只在服务端使用，从 APK 中剔除（减少体积）
+          rm -rf out/ocr-lang
+          # 恢复原配置
+          mv /tmp/paceon-api-backup src/app/api
+          mv next.config.ts.bak next.config.ts
+          echo "✅ 静态导出完成"
+
+      - name: Sync Capacitor
+        run: bunx cap sync android
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PaceCoach-APK-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Create Release on tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          generate_release_notes: true

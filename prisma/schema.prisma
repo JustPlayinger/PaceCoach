@@ -1,0 +1,182 @@
+// Prisma schema for PaceCoach - 智能长跑训练指导系统
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 跑者档案
+model Runner {
+  id            String   @id @default(cuid())
+  name          String
+  age           Int?
+  gender        String? // male / female
+  weight        Float?  // kg
+  height        Int?    // cm
+  restingHr     Int?    // 静息心率
+  maxHr         Int?    // 最大心率
+  vo2max        Float?  // 最大摄氧量
+  experience    String? // beginner / intermediate / advanced
+  targetRace    String? // 目标赛事 如 全马/半马/10K
+  targetDate    String? // 目标日期 YYYY-MM-DD
+  targetTime    String? // 目标成绩 如 3:30:00
+  weeklyMileage Int?    // 周跑量目标 km
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// 训练周
+model TrainingWeek {
+  id         String   @id @default(cuid())
+  weekStart  DateTime // 周一日期
+  weekEnd    DateTime // 周日日期
+  weekNumber Int?     // 训练周期第几周
+  phase      String?  // base / build / peak / taper / recovery
+  goal       String?  // 本周训练目标
+  summary    String?  // AI 生成的本周总结
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  sessions   TrainingSession[]
+  reviews    AIReview[]
+}
+
+// 训练课（计划）
+model TrainingSession {
+  id              String   @id @default(cuid())
+  weekId          String
+  week            TrainingWeek @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  date            DateTime // 训练日期
+  dayOfWeek       Int      // 0=周日 1=周一 ... 6=周六
+  type            String   // easy / tempo / interval / long / recovery / rest / cross
+  plannedDistance Float?   // km
+  plannedDuration Int?     // 分钟
+  plannedPace     String?  // "5:30/km"
+  intensity       String?  // 强度 Z1-Z5
+  description     String?  // 训练内容详细说明
+  status          String   @default("pending") // pending / completed / skipped
+  order           Int      @default(0)
+  completion      TrainingCompletion?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([weekId])
+  @@index([date])
+}
+
+// 完成记录
+model TrainingCompletion {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  session     TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  distance    Float?   // km
+  duration    Int?     // 秒
+  avgPace     String?  // "5:30/km"
+  avgPaceSec  Int?     // 秒/km
+  avgHr       Int?
+  maxHr       Int?
+  elevation   Int?     // 爬升 m
+  cadence     Int?     // 步频 spm
+  calories    Int?
+  weather     String?
+  temperature Float?
+  rpe         Int?     // 1-10 主观疲劳
+  feeling     Int?     // 1-10 体感
+  feelingNote String?
+  imageDataUrl String? // 原始图片 base64
+  rawExtract  String?  // AI 原始提取 JSON
+  notes       String?
+  shoeId      String?  // 关联跑鞋
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// AI 点评 / 计划记录
+model AIReview {
+  id          String   @id @default(cuid())
+  weekId      String?
+  week        TrainingWeek? @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  type        String   // weekly_review / plan_generation / micro_adjust
+  content     String   // AI 输出 markdown
+  rating      Int?     // 整体评分 0-100
+  suggestions String?  // JSON 建议
+  createdAt   DateTime @default(now())
+
+  @@index([weekId])
+}
+
+// 跑鞋
+model Shoe {
+  id          String   @id @default(cuid())
+  name        String
+  brand       String?
+  model       String?
+  type        String   @default("daily") // daily/racing/trail/minimal
+  color       String?
+  purchasedAt DateTime @default(now())
+  lifespan    Int      @default(800) // 建议寿命 km
+  retired     Boolean  @default(false)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  usages      ShoeUsage[]
+
+  @@index([retired])
+}
+
+// 跑鞋使用记录（关联训练完成）
+model ShoeUsage {
+  id           String   @id @default(cuid())
+  shoeId       String
+  shoe         Shoe     @relation(fields: [shoeId], references: [id], onDelete: Cascade)
+  completionId String?  // 关联训练完成记录
+  distance     Float    // km
+  date         DateTime @default(now())
+  note         String?
+  createdAt    DateTime @default(now())
+
+  @@index([shoeId])
+  @@index([date])
+}
+
+// 每日恢复记录（睡眠/补水/补给/体感）
+model RecoveryLog {
+  id           String   @id @default(cuid())
+  date         DateTime @unique // 日期，每日一条
+  sleepHours   Float?   // 睡眠时长
+  sleepQuality Int?     // 睡眠质量 1-5
+  waterIntake  Float?   // 饮水量 升
+  nutrition    Int?     // 营养评分 1-5
+  muscleSoreness Int?   // 肌肉酸痛 1-5（5 最严重）
+  fatigue      Int?     // 疲劳度 1-5
+  mood         Int?     // 情绪 1-5
+  preRunFuel   String?  // 跑前补给
+  duringFuel   String?  // 跑中补给
+  postRunFuel  String?  // 跑后补给
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([date])
+}
+
+// 个人最好成绩（PB）
+model PersonalRecord {
+  id          String   @id @default(cuid())
+  distance    String   @unique // 1K/3K/5K/10K/半马/全马
+  distanceKm  Float    // 实际距离 km
+  timeSec     Int      // 完赛时间 秒
+  date        DateTime // 创造日期
+  location    String?  // 赛事地点
+  raceName    String?  // 赛事名称
+  paceSec     Int?     // 配速 秒/km
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
