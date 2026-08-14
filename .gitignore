@@ -65,6 +65,7 @@ workspace-*
 /desktop/node_modules/
 /desktop/server/
 /desktop/release/
+/desktop/dsbridge/
 
 # ===== Android 构建产物 =====
 /android/.gradle/

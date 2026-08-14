@@ -22,6 +22,9 @@ const isPackaged = app.isPackaged
 const serverDir = isPackaged
   ? path.join(process.resourcesPath, 'server')
   : path.join(__dirname, 'server')
+const dsbridgeDir = isPackaged
+  ? path.join(process.resourcesPath, 'dsbridge')
+  : path.join(__dirname, 'dsbridge')
 const userDataDir = app.getPath('userData')
 const configPath = path.join(userDataDir, 'config.json')
 const dbPath = path.join(userDataDir, 'custom.db')
@@ -34,6 +37,8 @@ function defaultConfig() {
     deepseekApiUrl: 'https://api.deepseek.com/v1/chat/completions',
     visionApiUrl: 'http://127.0.0.1:8901/v1/chat/completions',
     port: 0, // 0 = 自动选空闲端口
+    autoStartDsBridge: false, // 随 PaceCoach 自动启动 DsBridge
+    dsbridgePort: 8901,
   }
 }
 
@@ -52,6 +57,111 @@ function loadConfig() {
 function saveConfig(cfg) {
   fs.mkdirSync(userDataDir, { recursive: true })
   fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2), 'utf-8')
+}
+
+// ---------- DsBridge 多模态网关管理 ----------
+
+let dsbridgeProcess = null
+
+function getDsBridgeConfigPath() {
+  const base = process.env.LOCALAPPDATA || process.env.APPDATA || ''
+  return path.join(base, 'DsBridge', 'config.json')
+}
+
+/** 把 PaceCoach 的 DeepSeek key 写入 DsBridge 配置（明文兼容，DsBridge 会自动识别） */
+function writeDsBridgeConfig(deepseekApiKey, deepseekApiUrl) {
+  const cfgPath = getDsBridgeConfigPath()
+  try {
+    let cfg = {}
+    if (fs.existsSync(cfgPath)) {
+      cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8').replace(/^\uFEFF/, ''))
+    }
+    cfg.deepseek = cfg.deepseek || {}
+    cfg.deepseek.api_key = deepseekApiKey || ''
+    if (deepseekApiUrl) cfg.deepseek.base_url = deepseekApiUrl.replace(/\/chat\/completions$/, '')
+    cfg.gateway = cfg.gateway || {}
+    cfg.gateway.host = '127.0.0.1'
+    cfg.gateway.port = 8901
+    fs.mkdirSync(path.dirname(cfgPath), { recursive: true })
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2), 'utf-8')
+    console.log('[dsbridge] 已写入 DeepSeek key 到', cfgPath)
+    return true
+  } catch (e) {
+    console.error('[dsbridge] 写入配置失败:', e.message)
+    return false
+  }
+}
+
+async function getDsBridgeHealth(port = 8901) {
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(2500) })
+    if (res.ok) {
+      const d = await res.json()
+      return { running: true, status: d.status || 'ok', version: d.version || '' }
+    }
+  } catch {}
+  return { running: false }
+}
+
+async function waitDsBridgeReady(port, timeoutMs = 45000) {
+  const start = Date.now()
+  while (Date.now() - start < timeoutMs) {
+    const h = await getDsBridgeHealth(port)
+    if (h.running) return true
+    await new Promise((r) => setTimeout(r, 800))
+  }
+  return false
+}
+
+function findDsBridgeExe() {
+  const exe = path.join(dsbridgeDir, 'DsBridge.exe')
+  return fs.existsSync(exe) ? exe : null
+}
+
+/** 一键启动 DsBridge 网关 */
+async function startDsBridge(cfg = loadConfig()) {
+  const port = cfg.dsbridgePort || 8901
+  const health = await getDsBridgeHealth(port)
+  if (health.running) return { ok: true, already: true, message: 'DsBridge 已在运行' }
+
+  if (!cfg.deepseekApiKey) {
+    return { ok: false, message: '请先在设置中填写 DeepSeek API Key' }
+  }
+
+  // 1. 同步 DeepSeek key 到 DsBridge 配置
+  writeDsBridgeConfig(cfg.deepseekApiKey, cfg.deepseekApiUrl)
+
+  // 2. 启动网关
+  const exe = findDsBridgeExe()
+  if (exe) {
+    dsbridgeProcess = spawn(exe, ['serve'], { stdio: 'ignore' })
+    console.log('[dsbridge] 启动内置 DsBridge.exe ->', exe)
+  } else {
+    dsbridgeProcess = spawn('python', ['-m', 'dsbridge', 'serve'], { stdio: 'ignore' })
+    console.log('[dsbridge] 未找到内置 exe，尝试 python -m dsbridge serve')
+  }
+
+  if (dsbridgeProcess) {
+    dsbridgeProcess.on('exit', (code, signal) => {
+      console.log('[dsbridge] 进程退出', code, signal)
+      dsbridgeProcess = null
+    })
+  }
+
+  // 3. 等待就绪
+  const ready = await waitDsBridgeReady(port)
+  if (!ready) {
+    return { ok: false, message: 'DsBridge 启动超时，请查看 DsBridge 日志' }
+  }
+  return { ok: true, message: 'DsBridge 已启动 ✅' }
+}
+
+function stopDsBridge() {
+  if (dsbridgeProcess) {
+    try { dsbridgeProcess.kill() } catch {}
+    dsbridgeProcess = null
+  }
+  return true
 }
 
 // ---------- 初始化数据 ----------
@@ -186,11 +296,29 @@ ipcMain.handle('config:save', (_e, cfg) => {
   saveConfig(cfg)
   return { ok: true }
 })
+ipcMain.handle('dsbridge:status', async (_e, port) => getDsBridgeHealth(port || (loadConfig().dsbridgePort || 8901)))
+ipcMain.handle('dsbridge:start', async () => startDsBridge(loadConfig()))
+ipcMain.handle('dsbridge:stop', () => {
+  stopDsBridge()
+  return { ok: true }
+})
+ipcMain.handle('dsbridge:config', () => {
+  writeDsBridgeConfig(loadConfig().deepseekApiKey, loadConfig().deepseekApiUrl)
+  return { ok: true }
+})
 
 // ---------- 启动 ----------
 
 app.whenReady().then(async () => {
   const cfg = loadConfig()
+
+  // 若勾选"随 PaceCoach 自动启动"，在后台拉起 DsBridge 网关（不阻塞服务器启动）
+  if (cfg.autoStartDsBridge && cfg.deepseekApiKey) {
+    const h = await getDsBridgeHealth(cfg.dsbridgePort || 8901)
+    if (!h.running) {
+      startDsBridge(cfg).then((r) => console.log('[dsbridge] 自动启动结果:', r.message))
+    }
+  }
 
   if (!cfg.deepseekApiKey) {
     // 首次使用：先让用户配置 API Key
@@ -212,6 +340,7 @@ app.whenReady().then(async () => {
 
 app.on('before-quit', () => {
   stopServer()
+  stopDsBridge()
 })
 
 app.on('window-all-closed', () => {

@@ -26,6 +26,11 @@
         "from": "server",
         "to": "server",
         "filter": ["**/*"]
+      },
+      {
+        "from": "dsbridge",
+        "to": "dsbridge",
+        "filter": ["**/*"]
       }
     ],
     "win": {

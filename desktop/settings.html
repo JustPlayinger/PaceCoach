@@ -7,19 +7,32 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: #f8fafc; color: #1e293b; }
-    .wrap { max-width: 520px; margin: 0 auto; padding: 28px 24px; }
+    .wrap { max-width: 560px; margin: 0 auto; padding: 26px 22px; }
     h1 { font-size: 20px; margin-bottom: 4px; }
-    .sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
-    .field { margin-bottom: 16px; }
+    .sub { font-size: 13px; color: #64748b; margin-bottom: 18px; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    .card h2 { font-size: 15px; margin-bottom: 10px; }
+    .field { margin-bottom: 14px; }
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #334155; }
-    input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+    input[type=text], input[type=password] { width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
     input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
     .hint { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.6; }
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; background: #10b981; color: #fff; margin-top: 8px; }
-    .btn:hover { background: #059669; }
-    .status { font-size: 13px; margin-top: 12px; text-align: center; }
+    .btn { padding: 9px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: #10b981; color: #fff; width: 100%; padding: 12px; font-size: 15px; margin-top: 6px; }
+    .btn-primary:hover { background: #059669; }
+    .btn-sm { background: #e2e8f0; color: #334155; }
+    .btn-sm:hover { background: #cbd5e1; }
+    .btn-green { background: #10b981; color: #fff; }
+    .btn-green:hover { background: #059669; }
+    .btn-red { background: #f43f5e; color: #fff; }
+    .status { font-size: 13px; margin-top: 10px; text-align: center; }
     .ok { color: #059669; } .err { color: #dc2626; }
     a { color: #10b981; }
+    .dsbridge-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.on { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,.6); }
+    .dot.off { background: #cbd5e1; }
+    .check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -27,33 +40,63 @@
     <h1>🏃 PaceCoach 设置</h1>
     <p class="sub">首次使用请填写以下配置（本地保存，不会上传）</p>
 
-    <div class="field">
-      <label>DeepSeek API Key</label>
-      <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off">
-      <p class="hint">在 <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a> 申请。</p>
+    <div class="card">
+      <h2>🔑 DeepSeek</h2>
+      <div class="field">
+        <label>API Key</label>
+        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off">
+        <p class="hint">在 <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a> 申请。用于训练点评、课表生成与对话。</p>
+      </div>
+      <div class="field">
+        <label>API 地址</label>
+        <input id="apiUrl" type="text" placeholder="https://api.deepseek.com/v1/chat/completions">
+      </div>
     </div>
 
-    <div class="field">
-      <label>DeepSeek API 地址</label>
-      <input id="apiUrl" type="text" placeholder="https://api.deepseek.com/v1/chat/completions">
-    </div>
-
-    <div class="field">
-      <label>识图网关地址（DsBridge，可选）</label>
-      <input id="visionUrl" type="text" placeholder="http://127.0.0.1:8901/v1/chat/completions">
-      <p class="hint">
-        DeepSeek 无多模态能力。安装并启动
-        <a href="https://github.com/JustPlayinger/ds-multimodal-bridge" target="_blank">DsBridge</a>
-        后可实现截图识图（含折线图）；未启动时应用自动降级为内置 OCR。
+    <div class="card">
+      <h2>🖼️ 识图网关（DsBridge）</h2>
+      <p class="hint" style="margin-bottom:10px;">
+        DeepSeek 无多模态能力。启动 DsBridge 后可对训练截图做完整识图（含折线图）；未启动时自动降级为内置 OCR。
       </p>
+      <div class="dsbridge-row">
+        <span class="dot off" id="dsDot"></span>
+        <span id="dsText" style="font-size:14px;font-weight:600;">检测中...</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-green" id="dsStart" style="flex:1;">▶ 一键启动</button>
+        <button class="btn btn-sm" id="dsStop" style="flex:1;">■ 停止</button>
+      </div>
+      <div class="status" id="dsStatus"></div>
+      <label class="check">
+        <input type="checkbox" id="autoStart">
+        <span>随 PaceCoach 自动启动 DsBridge</span>
+      </label>
+      <div class="field" style="margin-top:10px;">
+        <label>识图网关地址（可选，默认 8901）</label>
+        <input id="visionUrl" type="text" placeholder="http://127.0.0.1:8901/v1/chat/completions">
+      </div>
     </div>
 
-    <button class="btn" id="save">保存并启动</button>
+    <button class="btn btn-primary" id="save">保存设置</button>
     <div class="status" id="status"></div>
   </div>
 
   <script>
     const $ = (id) => document.getElementById(id)
+
+    function setDsState(running, text) {
+      $('dsDot').className = 'dot ' + (running ? 'on' : 'off')
+      $('dsText').textContent = text || (running ? 'DsBridge 运行中' : 'DsBridge 未运行')
+    }
+
+    async function refreshDsStatus() {
+      try {
+        const h = await window.pacecoachDsbridge.status()
+        setDsState(h.running)
+      } catch (e) {
+        setDsState(false, '无法检测 DsBridge')
+      }
+    }
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -61,9 +104,50 @@
         $('apiKey').value = cfg.deepseekApiKey || ''
         $('apiUrl').value = cfg.deepseekApiUrl || 'https://api.deepseek.com/v1/chat/completions'
         $('visionUrl').value = cfg.visionApiUrl || 'http://127.0.0.1:8901/v1/chat/completions'
+        $('autoStart').checked = !!cfg.autoStartDsBridge
       } catch (e) {
         $('status').textContent = '读取配置失败: ' + e.message
         $('status').className = 'status err'
+      }
+      await refreshDsStatus()
+      setInterval(refreshDsStatus, 5000)
+    })
+
+    $('dsStart').addEventListener('click', async () => {
+      const key = $('apiKey').value.trim()
+      if (!key) {
+        $('dsStatus').textContent = '请先填写 DeepSeek API Key'
+        $('dsStatus').className = 'status err'
+        return
+      }
+      $('dsStatus').textContent = '正在启动 DsBridge...'
+      $('dsStatus').className = 'status'
+      try {
+        await window.pacecoachConfig.save({
+          deepseekApiKey: key,
+          deepseekApiUrl: $('apiUrl').value.trim() || 'https://api.deepseek.com/v1/chat/completions',
+          visionApiUrl: $('visionUrl').value.trim() || 'http://127.0.0.1:8901/v1/chat/completions',
+          autoStartDsBridge: $('autoStart').checked,
+        })
+        const r = await window.pacecoachDsbridge.start()
+        $('dsStatus').textContent = r.message
+        $('dsStatus').className = 'status ' + (r.ok ? 'ok' : 'err')
+        await refreshDsStatus()
+      } catch (e) {
+        $('dsStatus').textContent = '启动失败: ' + e.message
+        $('dsStatus').className = 'status err'
+      }
+    })
+
+    $('dsStop').addEventListener('click', async () => {
+      try {
+        await window.pacecoachDsbridge.stop()
+        $('dsStatus').textContent = '已停止'
+        $('dsStatus').className = 'status ok'
+        await refreshDsStatus()
+      } catch (e) {
+        $('dsStatus').textContent = '停止失败: ' + e.message
+        $('dsStatus').className = 'status err'
       }
     })
 
@@ -79,6 +163,7 @@
           deepseekApiKey: key,
           deepseekApiUrl: $('apiUrl').value.trim() || 'https://api.deepseek.com/v1/chat/completions',
           visionApiUrl: $('visionUrl').value.trim() || 'http://127.0.0.1:8901/v1/chat/completions',
+          autoStartDsBridge: $('autoStart').checked,
         })
         $('status').textContent = '✅ 配置已保存'
         $('status').className = 'status ok'
