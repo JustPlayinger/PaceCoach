@@ -24,9 +24,10 @@ if ! command -v bun &> /dev/null; then
   exit 1
 fi
 
-# 步骤 1: 临时修改 next.config 为静态导出
+# 步骤 1: 临时修改 next.config 为静态导出 + 临时移开 API 路由（静态导出不支持 route.ts）
 echo "📦 步骤 1/4: 配置静态导出..."
 cp next.config.ts next.config.ts.bak
+mv src/app/api /tmp/paceon-api-backup 2>/dev/null || true
 cat > next.config.ts << 'EOF'
 import type { NextConfig } from "next";
 
@@ -46,6 +47,7 @@ echo "🏗️  步骤 2/4: 构建静态文件..."
 bun run build 2>&1 | tail -5
 
 # 恢复原始配置
+mv /tmp/paceon-api-backup src/app/api 2>/dev/null || true
 mv next.config.ts.bak next.config.ts
 echo "✅ 静态文件已生成到 out/"
 
