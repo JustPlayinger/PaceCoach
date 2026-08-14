@@ -36,10 +36,22 @@ $env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/"
 bun install
 if ($LASTEXITCODE -ne 0) { throw "bun install 失败" }
 
+# 补丁：Windows Defender 会拦截 exe 写入导致 addWinAsarIntegrity 报 UNKNOWN，
+# 跳过 ASAR 完整性写入（不影响本地使用）
+$electronWin = "node_modules\app-builder-lib\out\electron\electronWin.js"
+if (Test-Path $electronWin) {
+  $content = Get-Content $electronWin -Raw
+  if ($content -notmatch "PaceCoach.*skip integrity") {
+    $patched = $content -replace 'async function addWinAsarIntegrity\(executablePath, asarIntegrity\) \{', 'async function addWinAsarIntegrity(executablePath, asarIntegrity) { return; // [PaceCoach] skip integrity'
+    Set-Content -Path $electronWin -Value $patched -NoNewline -Encoding UTF8
+    Write-Host "    已应用 electron-builder 补丁（跳过 ASAR 完整性写入）"
+  }
+}
+
 Write-Host "==> [5/5] 打包桌面应用..." -ForegroundColor Cyan
 bun run dist
 if ($LASTEXITCODE -ne 0) { throw "electron-builder 打包失败" }
 
 Write-Host ""
 Write-Host "✅ 完成！产物位于: desktop\release\" -ForegroundColor Green
-Get-ChildItem "desktop\release" -Filter "*.exe" | ForEach-Object { Write-Host "   - $($_.Name) ($([math]::Round($_.Length/1MB,1)) MB)" }
+Get-ChildItem "release" -Filter "*.exe" | ForEach-Object { Write-Host "   - $($_.Name) ($([math]::Round($_.Length/1MB,1)) MB)" }
