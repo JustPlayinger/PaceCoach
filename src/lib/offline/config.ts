@@ -2,8 +2,8 @@
  * 离线模式配置（浏览器端）
  * DeepSeek API key 等本地配置，存 localStorage。
  */
-const KEY_API = 'pacecoach-ds-api-key'
-const KEY_URL = 'pacecoach-ds-api-url'
+const KEY_API = 'paceon-ds-api-key'
+const KEY_URL = 'paceon-ds-api-url'
 
 export interface DeepseekConfig {
   apiKey: string

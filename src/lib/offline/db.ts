@@ -11,7 +11,7 @@ type BindParams = import('sql.js').BindParams
 
 let SQL: SqlJsStatic | null = null
 let db: Database | null = null
-const DB_KEY = 'pacecoach-offline-db'
+const DB_KEY = 'paceon-offline-db'
 
 // ---------- 表结构（与 prisma/schema.prisma 一致，列名 camelCase） ----------
 
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS PersonalRecord (
 function idbGet(key: string): Promise<Uint8Array | null> {
   return new Promise((resolve, reject) => {
     try {
-      const req = indexedDB.open('pacecoach', 1)
+      const req = indexedDB.open('paceon', 1)
       req.onupgradeneeded = () => req.result.createObjectStore('store')
       req.onsuccess = () => {
         const idb = req.result
@@ -91,7 +91,7 @@ function idbGet(key: string): Promise<Uint8Array | null> {
 function idbSet(key: string, data: Uint8Array): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
-      const req = indexedDB.open('pacecoach', 1)
+      const req = indexedDB.open('paceon', 1)
       req.onupgradeneeded = () => req.result.createObjectStore('store')
       req.onsuccess = () => {
         const idb = req.result

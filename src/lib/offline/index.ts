@@ -19,13 +19,13 @@ export function isCapacitorApp(): boolean {
 
 export function isOfflineModeEnabled(): boolean {
   if (typeof localStorage === 'undefined') return false
-  return localStorage.getItem('pacecoach-offline-mode') === '1' || isCapacitorApp()
+  return localStorage.getItem('paceon-offline-mode') === '1' || isCapacitorApp()
 }
 
 export function setOfflineMode(on: boolean): void {
   if (typeof localStorage === 'undefined') return
-  if (on) localStorage.setItem('pacecoach-offline-mode', '1')
-  else localStorage.removeItem('pacecoach-offline-mode')
+  if (on) localStorage.setItem('paceon-offline-mode', '1')
+  else localStorage.removeItem('paceon-offline-mode')
 }
 
 /** 初始化离线模式（幂等） */

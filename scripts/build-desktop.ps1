@@ -1,7 +1,7 @@
 ﻿# =====================================================
-# PaceCoach 桌面版构建脚本（Windows）
+# PaceOn 桌面版构建脚本（Windows）
 # 用法: powershell -ExecutionPolicy Bypass -File scripts/build-desktop.ps1
-# 产物: desktop/release/PaceCoach Setup*.exe 与 PaceCoach*.exe (portable)
+# 产物: desktop/release/PaceOn Setup*.exe 与 PaceOn*.exe (portable)
 # =====================================================
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
@@ -52,8 +52,8 @@ if ($LASTEXITCODE -ne 0) { throw "bun install 失败" }
 $electronWin = "node_modules\app-builder-lib\out\electron\electronWin.js"
 if (Test-Path $electronWin) {
   $content = Get-Content $electronWin -Raw
-  if ($content -notmatch "PaceCoach.*skip integrity") {
-    $patched = $content -replace 'async function addWinAsarIntegrity\(executablePath, asarIntegrity\) \{', 'async function addWinAsarIntegrity(executablePath, asarIntegrity) { return; // [PaceCoach] skip integrity'
+  if ($content -notmatch "PaceOn.*skip integrity") {
+    $patched = $content -replace 'async function addWinAsarIntegrity\(executablePath, asarIntegrity\) \{', 'async function addWinAsarIntegrity(executablePath, asarIntegrity) { return; // [PaceOn] skip integrity'
     Set-Content -Path $electronWin -Value $patched -NoNewline -Encoding UTF8
     Write-Host "    已应用 electron-builder 补丁（跳过 ASAR 完整性写入）"
   }

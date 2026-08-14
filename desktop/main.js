@@ -1,5 +1,5 @@
 /**
- * PaceCoach 桌面版主进程
+ * PaceOn 桌面版主进程
  *
  * 架构：
  *  - 内置 Next.js standalone 服务器（.next/standalone 打包为 resources/server）
@@ -37,7 +37,7 @@ function defaultConfig() {
     deepseekApiUrl: 'https://api.deepseek.com/v1/chat/completions',
     visionApiUrl: 'http://127.0.0.1:8901/v1/chat/completions',
     port: 0, // 0 = 自动选空闲端口
-    autoStartDsBridge: false, // 随 PaceCoach 自动启动 DsBridge
+    autoStartDsBridge: false, // 随 PaceOn 自动启动 DsBridge
     dsbridgePort: 8901,
   }
 }
@@ -68,7 +68,7 @@ function getDsBridgeConfigPath() {
   return path.join(base, 'DsBridge', 'config.json')
 }
 
-/** 把 PaceCoach 的 DeepSeek key 写入 DsBridge 配置（明文兼容，DsBridge 会自动识别） */
+/** 把 PaceOn 的 DeepSeek key 写入 DsBridge 配置（明文兼容，DsBridge 会自动识别） */
 function writeDsBridgeConfig(deepseekApiKey, deepseekApiUrl) {
   const cfgPath = getDsBridgeConfigPath()
   try {
@@ -263,7 +263,7 @@ function createMainWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    title: 'PaceCoach · 智能长跑训练助手',
+    title: 'PaceOn · 智能长跑训练助手',
     autoHideMenuBar: true,
     webPreferences: { contextIsolation: true },
   })
@@ -276,7 +276,7 @@ function createSettingsWindow() {
   settingsWindow = new BrowserWindow({
     width: 560,
     height: 540,
-    title: 'PaceCoach 设置',
+    title: 'PaceOn 设置',
     resizable: false,
     parent: mainWindow || undefined,
     webPreferences: {
@@ -312,7 +312,7 @@ ipcMain.handle('dsbridge:config', () => {
 app.whenReady().then(async () => {
   const cfg = loadConfig()
 
-  // 若勾选"随 PaceCoach 自动启动"，在后台拉起 DsBridge 网关（不阻塞服务器启动）
+  // 若勾选"随 PaceOn 自动启动"，在后台拉起 DsBridge 网关（不阻塞服务器启动）
   if (cfg.autoStartDsBridge && cfg.deepseekApiKey) {
     const h = await getDsBridgeHealth(cfg.dsbridgePort || 8901)
     if (!h.running) {

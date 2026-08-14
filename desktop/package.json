@@ -1,7 +1,7 @@
 {
-  "name": "pacecoach-desktop",
+  "name": "paceon-desktop",
   "version": "1.0.0",
-  "description": "PaceCoach 智能长跑训练助手 - 桌面版",
+  "description": "PaceOn 智能长跑训练助手 - 桌面版",
   "author": "JustPlayinger",
   "main": "main.js",
   "private": true,
@@ -11,8 +11,8 @@
     "dist:dir": "electron-builder --dir"
   },
   "build": {
-    "appId": "com.pacecoach.desktop",
-    "productName": "PaceCoach",
+    "appId": "com.paceon.desktop",
+    "productName": "PaceOn",
     "directories": {
       "output": "release"
     },
@@ -45,7 +45,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "PaceCoach"
+      "shortcutName": "PaceOn"
     }
   },
   "devDependencies": {

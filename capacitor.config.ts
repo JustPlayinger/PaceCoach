@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'com.pacecoach.app',
-  appName: 'PaceCoach',
+  appId: 'com.paceon.app',
+  appName: 'PaceOn',
   webDir: 'out',
   bundledWebRuntime: false,
   android: {

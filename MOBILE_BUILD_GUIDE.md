@@ -1,6 +1,6 @@
-# 📱 PaceCoach Android APK 本地打包完整指南
+# 📱 PaceOn Android APK 本地打包完整指南
 
-本指南详细说明如何将 PaceCoach 项目从云端拉取到本地电脑，并打包成 Android APK 安装到手机。
+本指南详细说明如何将 PaceOn 项目从云端拉取到本地电脑，并打包成 Android APK 安装到手机。
 
 ---
 
@@ -10,7 +10,7 @@
 云端项目 → 本地电脑（安装环境） → 构建 Web 静态文件 → Capacitor 打包 → Android APK → 安装到手机
 ```
 
-PaceCoach 是 Next.js 全栈应用（前端 + API + 数据库）。打包 APK 有两种方案：
+PaceOn 是 Next.js 全栈应用（前端 + API + 数据库）。打包 APK 有两种方案：
 
 | 方案 | 说明 | 适用场景 |
 |------|------|---------|
@@ -129,16 +129,16 @@ cd /home/z/my-project
 
 # 初始化并推送到你的 GitHub 仓库
 git add -A
-git commit -m "PaceCoach 完整项目"
-git remote add origin https://github.com/你的用户名/pacecoach.git
+git commit -m "PaceOn 完整项目"
+git remote add origin https://github.com/你的用户名/paceon.git
 git branch -M main
 git push -u origin main
 ```
 
 在本地电脑中：
 ```bash
-git clone https://github.com/你的用户名/pacecoach.git
-cd pacecoach
+git clone https://github.com/你的用户名/paceon.git
+cd paceon
 ```
 
 **方式 2：打包下载**
@@ -147,27 +147,27 @@ cd pacecoach
 ```bash
 cd /home/z/my-project
 # 排除 node_modules 和 .next，打包其余文件
-tar --exclude='node_modules' --exclude='.next' --exclude='db/*.db' -czf pacecoach.tar.gz .
+tar --exclude='node_modules' --exclude='.next' --exclude='db/*.db' -czf paceon.tar.gz .
 ```
 
-下载 `pacecoach.tar.gz` 到本地，解压：
+下载 `paceon.tar.gz` 到本地，解压：
 ```bash
-mkdir pacecoach
-cd pacecoach
-tar -xzf ../pacecoach.tar.gz
+mkdir paceon
+cd paceon
+tar -xzf ../paceon.tar.gz
 ```
 
 **方式 3：SCP/SFTP 直传**
 
 ```bash
 # 从云端复制到本地（需 SSH 访问）
-scp -r cloud-server:/home/z/my-project ./pacecoach
+scp -r cloud-server:/home/z/my-project ./paceon
 ```
 
 #### 2.2 安装依赖
 
 ```bash
-cd pacecoach
+cd paceon
 bun install
 ```
 
@@ -226,12 +226,12 @@ bash scripts/build-android.sh
 
 **步骤 1：部署服务器到公网**
 
-选择一个云服务器（阿里云/腾讯云/Vercel/Railway 等），部署 PaceCoach：
+选择一个云服务器（阿里云/腾讯云/Vercel/Railway 等），部署 PaceOn：
 
 ```bash
 # 在服务器上
-git clone https://github.com/你的用户名/pacecoach.git
-cd pacecoach
+git clone https://github.com/你的用户名/paceon.git
+cd paceon
 bun install
 bun run db:push
 
@@ -314,7 +314,7 @@ Debug 版本无需签名，但不能发布到应用商店。Release 版本需要
 #### 5.1 生成签名密钥
 
 ```bash
-keytool -genkey -v -keystore pacecoach.keystore -alias pacecoach -keyalg RSA -keysize 2048 -validity 10000
+keytool -genkey -v -keystore paceon.keystore -alias paceon -keyalg RSA -keysize 2048 -validity 10000
 
 # 按提示输入：
 # 密码：你的密码
@@ -328,9 +328,9 @@ keytool -genkey -v -keystore pacecoach.keystore -alias pacecoach -keyalg RSA -ke
 ```gradle
 signingConfigs {
     release {
-        storeFile file('../../pacecoach.keystore')
+        storeFile file('../../paceon.keystore')
         storePassword '你的密码'
-        keyAlias 'pacecoach'
+        keyAlias 'paceon'
         keyPassword '你的密码'
     }
 }

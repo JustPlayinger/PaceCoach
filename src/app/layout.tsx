@@ -15,15 +15,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PaceCoach · 智能长跑训练指导",
+  title: "PaceOn · 智能长跑训练指导",
   description: "AI 驱动的长跑训练助手：课表管理、训练数据识别、智能点评与下周课表生成。",
   keywords: ["长跑", "马拉松训练", "跑步课表", "AI 教练", "训练数据识别"],
-  authors: [{ name: "PaceCoach" }],
+  authors: [{ name: "PaceOn" }],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "PaceCoach",
+    title: "PaceOn",
   },
   icons: {
     icon: [
@@ -57,8 +57,8 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="PaceCoach" />
-        <meta name="application-name" content="PaceCoach" />
+        <meta name="apple-mobile-web-app-title" content="PaceOn" />
+        <meta name="application-name" content="PaceOn" />
         <meta name="format-detection" content="telephone=no" />
       </head>
       <body

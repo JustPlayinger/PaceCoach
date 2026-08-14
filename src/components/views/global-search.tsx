@@ -107,7 +107,7 @@ export function GlobalSearch() {
     }
     const tab = tabs[r.type] || 'dashboard'
     // 触发自定义事件让主页面切换 tab
-    window.dispatchEvent(new CustomEvent('pacecoach-navigate', { detail: tab }))
+    window.dispatchEvent(new CustomEvent('paceon-navigate', { detail: tab }))
     setOpen(false)
     setQuery('')
     setResults([])

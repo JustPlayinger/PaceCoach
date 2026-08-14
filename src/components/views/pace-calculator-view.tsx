@@ -62,7 +62,7 @@ export function PaceCalculatorView() {
 
   const handleCopy = () => {
     if (!paceZones) return
-    let text = `🏃 PaceCoach 配速区间（目标 ${targetRace} ${secToTimeStr(targetTimeSec)}）\n\n`
+    let text = `🏃 PaceOn 配速区间（目标 ${targetRace} ${secToTimeStr(targetTimeSec)}）\n\n`
     for (const cfg of PACE_ZONE_CONFIG) {
       const z = paceZones[cfg.key]
       text += `${cfg.icon} ${cfg.label}：${z.pace}/km（${z.range}）${z.hrZone}\n`

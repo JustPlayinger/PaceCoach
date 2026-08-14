@@ -2,7 +2,7 @@
  * 客户端 API 基址补丁
  *
  * 用途：APK / 静态导出模式下，把浏览器发出的 /api/* 请求转发到
- * 可配置的远程 PaceCoach 服务器（localStorage 中的 pacecoach-api-base）。
+ * 可配置的远程 PaceOn 服务器（localStorage 中的 paceon-api-base）。
  * 桌面/同源模式（未配置 base）下，fetch 行为完全不变。
  *
  * 在 page.tsx 模块加载时调用 patchFetch() 一次即可。

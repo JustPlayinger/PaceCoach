@@ -1,4 +1,4 @@
-# 生成 PaceCoach 桌面应用图标 desktop/build/icon.ico（含 16/32/48/256 多尺寸）
+# 生成 PaceOn 桌面应用图标 desktop/build/icon.ico（含 16/32/48/256 多尺寸）
 # 需要 Pillow：pip install pillow
 import os
 import struct

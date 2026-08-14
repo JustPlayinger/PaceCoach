@@ -52,7 +52,7 @@ export function DataView({ onDataChanged }: { onDataChanged: () => void }) {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `pacecoach-backup-${new Date().toISOString().slice(0, 10)}.json`
+      a.download = `paceon-backup-${new Date().toISOString().slice(0, 10)}.json`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -297,7 +297,7 @@ ZAI_API_KEY=your_api_key`}</code></pre>
           </Button>
         </div>
         <p className="mt-2 text-[11px] text-slate-400">
-          留空表示同源模式（桌面版/浏览器直连本地服务）。APK 用户填写你部署的 PaceCoach 服务器地址（如 https://pace.on 或局域网 IP:3000）。
+          留空表示同源模式（桌面版/浏览器直连本地服务）。APK 用户填写你部署的 PaceOn 服务器地址（如 https://pace.on 或局域网 IP:3000）。
         </p>
       </div>
 
@@ -338,7 +338,7 @@ ZAI_API_KEY=your_api_key`}</code></pre>
         >
           <FileJson className="mx-auto h-8 w-8 text-slate-400 mb-2" />
           <p className="text-sm font-medium text-slate-600">点击选择 JSON 备份文件</p>
-          <p className="text-xs text-slate-400 mt-1">支持 PaceCoach 导出的 .json 格式</p>
+          <p className="text-xs text-slate-400 mt-1">支持 PaceOn 导出的 .json 格式</p>
           <input
             ref={fileInputRef}
             type="file"

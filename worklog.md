@@ -1,4 +1,4 @@
-# PaceCoach · 智能长跑训练指导 - 工作日志
+# PaceOn · 智能长跑训练指导 - 工作日志
 
 ## 项目概述
 AI 驱动的长跑训练指导系统，集成 OCR/视觉识别（训练 App 长图数据提取）+ DeepSeek LLM 训练点评与课表生成。
@@ -40,9 +40,9 @@ AI 驱动的长跑训练指导系统，集成 OCR/视觉识别（训练 App 长�
 - `bun run build` 的 `cp -r` 替换为跨平台 `scripts/after-build.mjs`
 
 **4. 桌面版（Electron，desktop/）**
-- `main.js`：内嵌 Next.js standalone 服务器（ELECTRON_RUN_AS_NODE 子进程），自动选空闲端口，首启设置向导（DeepSeek Key / DsBridge 网关），配置与数据库放 `%APPDATA%\PaceCoach`
+- `main.js`：内嵌 Next.js standalone 服务器（ELECTRON_RUN_AS_NODE 子进程），自动选空闲端口，首启设置向导（DeepSeek Key / DsBridge 网关），配置与数据库放 `%APPDATA%\PaceOn`
 - `scripts/build-desktop.ps1`：一键打包（含 electron-builder Defender 补丁）
-- 产物：`desktop/release/PaceCoach Setup 1.0.0.exe` + `PaceCoach 1.0.0.exe`（已验证运行）
+- 产物：`desktop/release/PaceOn Setup 1.0.0.exe` + `PaceOn 1.0.0.exe`（已验证运行）
 
 **5. Android APK（Capacitor）**
 - `npx cap add android` 生成工程
@@ -51,7 +51,7 @@ AI 驱动的长跑训练指导系统，集成 OCR/视觉识别（训练 App 长�
 - `.github/workflows/build-apk.yml`：GitHub Actions 自动构建（ubuntu + JDK17 + Android SDK）并上传 APK
 
 **6. GitHub**
-- 新建仓库 `JustPlayinger/PaceCoach`（public），git 历史重建（避免旧 .env 泄露）
+- 新建仓库 `JustPlayinger/PaceOn`（public），git 历史重建（避免旧 .env 泄露）
 - 4 个提交已推送，敏感文件（.env/db/node_modules/构建产物）已从仓库排除
 
 ### 验证结果
@@ -63,7 +63,7 @@ AI 驱动的长跑训练指导系统，集成 OCR/视觉识别（训练 App 长�
 - GitHub CI 构建 APK：已触发运行中
 
 ### 遗留 / 说明
-- APK 为远程后端模式，需部署 PaceCoach 服务器后在「数据管理」配置地址
+- APK 为远程后端模式，需部署 PaceOn 服务器后在「数据管理」配置地址
 - 桌面版识图：DsBridge 方案 A（本地 OCR）无折线图曲线；方案 B（Ollama+Qwen2.5-VL）可读图
 - DeepSeek API key 已在对话中明文出现，建议在 platform.deepseek.com 重置
 
@@ -71,7 +71,7 @@ AI 驱动的长跑训练指导系统，集成 OCR/视觉识别（训练 App 长�
 ---
 Task ID: 1-9
 Agent: 主 Agent (Z.ai Code)
-Task: 构建完整的 PaceCoach 智能长跑训练指导系统
+Task: 构建完整的 PaceOn 智能长跑训练指导系统
 
 Work Log:
 - 设计 Prisma 数据模型：Runner / TrainingWeek / TrainingSession / TrainingCompletion / AIReview，已 db:push
@@ -106,7 +106,7 @@ Agent: 主 Agent (Z.ai Code)
 Task: Agent Browser 端到端验证
 
 Work Log:
-- 打开 / 路由，确认页面渲染（标题 PaceCoach · 智能长跑训练指导）
+- 打开 / 路由，确认页面渲染（标题 PaceOn · 智能长跑训练指导）
 - 验证本周课表视图：第 1 周 · 基础期，7/20-7/26，7 节训练课（轻松跑/休息/节奏跑/恢复跑/长跑/恢复跑）
 - 验证上传数据：填写表单（8km/50min/5:35/km/152bpm）→ 保存 → 状态变更为「已完成」
 - 验证 AI 点评：点击「生成本周点评」→ LLM 生成 75/100 评分 + 详细 markdown 点评 + 可执行建议
@@ -124,16 +124,16 @@ Stage Summary:
 - 数据持久化与状态同步正常
 
 ## 当前项目状态
-✅ 稳定可用。完整版 17 Tab + PWA/Capacitor 移动端 + 轻量版（pacecoach-lite）3 Tab 精简版。
+✅ 稳定可用。完整版 17 Tab + PWA/Capacitor 移动端 + 轻量版（paceon-lite）3 Tab 精简版。
 
 ---
 Task ID: 24
 Agent: 主 Agent (Z.ai Code)
-Task: 创建轻量化版本（pacecoach-lite）
+Task: 创建轻量化版本（paceon-lite）
 
 Work Log:
 - 需求：创建精简版，只保留课表管理 + 数据上传与 AI 识别 + AI 点评与课表生成
-- 创建 pacecoach-lite/ 独立目录（完整版互不干扰）
+- 创建 paceon-lite/ 独立目录（完整版互不干扰）
 - 数据模型精简：5 个模型（Runner/TrainingWeek/TrainingSession/TrainingCompletion/AIReview），去除 Shoe/ShoeUsage/RecoveryLog/PersonalRecord
 - API 精简：8 组（runner/weeks/weeks/[id]/reviews/sessions/[id]/complete/extract/review/plan/seed），从 31 组精简到 8 组
 - AI 库精简：仅保留 extractTrainingDataFromImage（VLM 提取）+ generateWeeklyReview（LLM 点评）+ generateNextWeekPlan/generateInitialPlan（LLM 课表生成），去除对话式生成/微调/单次分析
@@ -182,7 +182,7 @@ Stage Summary:
 - 3 种移动端运行方案覆盖所有场景
 
 Work Log:
-- 需求：将 PaceCoach 打包到 Android 移动端
+- 需求：将 PaceOn 打包到 Android 移动端
 - 方案：PWA（渐进式 Web 应用）+ Capacitor（原生 APK 打包）双方案
 - PWA 配置：
   - 生成应用图标（192/256/384/512px + maskable 192/512 + apple-touch-icon 180 + favicon 32）
@@ -194,7 +194,7 @@ Work Log:
   - 验证：manifest.json 200 + sw.js 200 + 所有图标 200 + meta 标签正确
 - Capacitor Android 打包：
   - 安装 @capacitor/core @capacitor/cli @capacitor/android @capacitor/app @capacitor/haptics @capacitor/keyboard @capacitor/status-bar
-  - 创建 capacitor.config.ts：appId=com.pacecoach.app, webDir=out, 启动画面/状态栏/键盘配置
+  - 创建 capacitor.config.ts：appId=com.paceon.app, webDir=out, 启动画面/状态栏/键盘配置
   - 创建 scripts/build-android.sh：一键打包脚本
     - 临时切换 next.config 为 output:export 静态导出
     - 构建静态文件到 out/
@@ -218,7 +218,7 @@ Stage Summary:
   - manifest.json 200：应用清单正确
   - sw.js 200：Service Worker 正确
   - 图标全部 200：icon-192(23KB)/icon-512(100KB)/apple-touch-icon/maskable-512
-  - PWA meta 标签：manifest/themeColor#10b981/appleCapable=yes/appleTitle=PaceCoach 全部正确
+  - PWA meta 标签：manifest/themeColor#10b981/appleCapable=yes/appleTitle=PaceOn 全部正确
   - 移动端底部导航栏：5 个按钮，桌面 display:none，手机可见
   - 无控制台错误
 - ESLint 通过（0 error 0 warning）
@@ -345,7 +345,7 @@ Work Log:
     - 点击外部自动关闭
     - 点击结果自动跳转对应 Tab
   - 主页面顶部导航栏集成搜索框
-  - 主组件监听 pacecoach-navigate 事件切换 Tab
+  - 主组件监听 paceon-navigate 事件切换 Tab
   - 验证：搜索 "easy" 返回 8 个轻松跑训练课，搜索 "Nike" 返回跑鞋结果
 
 Stage Summary:

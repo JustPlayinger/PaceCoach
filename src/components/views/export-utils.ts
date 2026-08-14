@@ -9,7 +9,7 @@ export function weekToMarkdown(week: Week, runner: Runner | null): string {
   const actualTotal = completed.reduce((sum, s) => sum + (s.completion?.distance || 0), 0)
   const completionRate = plannedTotal > 0 ? Math.min(100, Math.round((actualTotal / plannedTotal) * 100)) : 0
 
-  let md = `# 🏃 PaceCoach 训练课表\n\n`
+  let md = `# 🏃 PaceOn 训练课表\n\n`
   md += `**第 ${week.weekNumber ?? '?'} 周 · ${PHASE_LABELS[week.phase || ''] || week.phase || '-'}**\n`
   md += `**周期：** ${getWeekRange(week.weekStart, week.weekEnd)}\n`
   if (runner) {
@@ -39,7 +39,7 @@ export function weekToMarkdown(week: Week, runner: Runner | null): string {
     const status = s.status === 'completed' ? '✅' : s.status === 'skipped' ? '⏭️' : '⏳'
     md += `| ${dateStr} | ${cfg.icon} ${cfg.label} | ${planned} | ${actual} | ${pace} | ${hr} | ${status} |\n`
   }
-  md += `\n---\n*由 PaceCoach 智能长跑训练指导系统生成 · ${new Date().toLocaleString('zh-CN')}*\n`
+  md += `\n---\n*由 PaceOn 智能长跑训练指导系统生成 · ${new Date().toLocaleString('zh-CN')}*\n`
   return md
 }
 
@@ -78,7 +78,7 @@ export function printWeek(week: Week, runner: Runner | null) {
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>PaceCoach 课表 - 第${week.weekNumber ?? '?'}周</title>
+<title>PaceOn 课表 - 第${week.weekNumber ?? '?'}周</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; color: #1e293b; padding: 32px; max-width: 800px; margin: 0 auto; }
@@ -109,7 +109,7 @@ export function printWeek(week: Week, runner: Runner | null) {
 </head>
 <body>
   <div class="header">
-    <h1>🏃 PaceCoach 训练课表</h1>
+    <h1>🏃 PaceOn 训练课表</h1>
     <div class="subtitle">第 ${week.weekNumber ?? '?'} 周 · ${PHASE_LABELS[week.phase || ''] || week.phase || '-'} · ${getWeekRange(week.weekStart, week.weekEnd)}</div>
   </div>
   <div class="meta">
@@ -138,7 +138,7 @@ export function printWeek(week: Week, runner: Runner | null) {
       }).join('')}
     </tbody>
   </table>
-  <div class="footer">由 PaceCoach 智能长跑训练指导系统生成</div>
+  <div class="footer">由 PaceOn 智能长跑训练指导系统生成</div>
 </body>
 </html>`
 

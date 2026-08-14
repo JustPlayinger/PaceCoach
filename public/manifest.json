@@ -1,6 +1,6 @@
 {
-  "name": "PaceCoach 智能长跑训练指导",
-  "short_name": "PaceCoach",
+  "name": "PaceOn 智能长跑训练指导",
+  "short_name": "PaceOn",
   "description": "AI 驱动的长跑训练助手：课表管理、训练数据识别、AI 点评与课表生成",
   "start_url": "/",
   "display": "standalone",

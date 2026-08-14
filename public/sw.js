@@ -1,7 +1,7 @@
-// PaceCoach Service Worker - 离线缓存与快速加载
-const CACHE_NAME = 'pacecoach-v1'
-const STATIC_CACHE = 'pacecoach-static-v1'
-const DYNAMIC_CACHE = 'pacecoach-dynamic-v1'
+// PaceOn Service Worker - 离线缓存与快速加载
+const CACHE_NAME = 'paceon-v1'
+const STATIC_CACHE = 'paceon-static-v1'
+const DYNAMIC_CACHE = 'paceon-dynamic-v1'
 
 // 静态资源（应用壳）
 const STATIC_ASSETS = [

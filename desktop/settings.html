@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PaceCoach 设置</title>
+  <title>PaceOn 设置</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: #f8fafc; color: #1e293b; }
@@ -37,7 +37,7 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>🏃 PaceCoach 设置</h1>
+    <h1>🏃 PaceOn 设置</h1>
     <p class="sub">首次使用请填写以下配置（本地保存，不会上传）</p>
 
     <div class="card">
@@ -69,7 +69,7 @@
       <div class="status" id="dsStatus"></div>
       <label class="check">
         <input type="checkbox" id="autoStart">
-        <span>随 PaceCoach 自动启动 DsBridge</span>
+        <span>随 PaceOn 自动启动 DsBridge</span>
       </label>
       <div class="field" style="margin-top:10px;">
         <label>识图网关地址（可选，默认 8901）</label>
@@ -91,7 +91,7 @@
 
     async function refreshDsStatus() {
       try {
-        const h = await window.pacecoachDsbridge.status()
+        const h = await window.paceonDsbridge.status()
         setDsState(h.running)
       } catch (e) {
         setDsState(false, '无法检测 DsBridge')
@@ -100,7 +100,7 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
-        const cfg = await window.pacecoachConfig.get()
+        const cfg = await window.paceonConfig.get()
         $('apiKey').value = cfg.deepseekApiKey || ''
         $('apiUrl').value = cfg.deepseekApiUrl || 'https://api.deepseek.com/v1/chat/completions'
         $('visionUrl').value = cfg.visionApiUrl || 'http://127.0.0.1:8901/v1/chat/completions'
@@ -123,13 +123,13 @@
       $('dsStatus').textContent = '正在启动 DsBridge...'
       $('dsStatus').className = 'status'
       try {
-        await window.pacecoachConfig.save({
+        await window.paceonConfig.save({
           deepseekApiKey: key,
           deepseekApiUrl: $('apiUrl').value.trim() || 'https://api.deepseek.com/v1/chat/completions',
           visionApiUrl: $('visionUrl').value.trim() || 'http://127.0.0.1:8901/v1/chat/completions',
           autoStartDsBridge: $('autoStart').checked,
         })
-        const r = await window.pacecoachDsbridge.start()
+        const r = await window.paceonDsbridge.start()
         $('dsStatus').textContent = r.message
         $('dsStatus').className = 'status ' + (r.ok ? 'ok' : 'err')
         await refreshDsStatus()
@@ -141,7 +141,7 @@
 
     $('dsStop').addEventListener('click', async () => {
       try {
-        await window.pacecoachDsbridge.stop()
+        await window.paceonDsbridge.stop()
         $('dsStatus').textContent = '已停止'
         $('dsStatus').className = 'status ok'
         await refreshDsStatus()
@@ -159,7 +159,7 @@
         return
       }
       try {
-        await window.pacecoachConfig.save({
+        await window.paceonConfig.save({
           deepseekApiKey: key,
           deepseekApiUrl: $('apiUrl').value.trim() || 'https://api.deepseek.com/v1/chat/completions',
           visionApiUrl: $('visionUrl').value.trim() || 'http://127.0.0.1:8901/v1/chat/completions',
@@ -167,7 +167,7 @@
         })
         $('status').textContent = '✅ 配置已保存'
         $('status').className = 'status ok'
-        setTimeout(() => window.pacecoachConfig.ready(), 300)
+        setTimeout(() => window.paceonConfig.ready(), 300)
       } catch (e) {
         $('status').textContent = '保存失败: ' + e.message
         $('status').className = 'status err'

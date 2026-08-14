@@ -115,8 +115,8 @@ export default function Home() {
       const detail = (e as CustomEvent).detail as Tab
       if (detail) setTab(detail)
     }
-    window.addEventListener('pacecoach-navigate', handler as EventListener)
-    return () => window.removeEventListener('pacecoach-navigate', handler as EventListener)
+    window.addEventListener('paceon-navigate', handler as EventListener)
+    return () => window.removeEventListener('paceon-navigate', handler as EventListener)
   }, [])
 
   const refresh = useCallback(() => {
@@ -134,7 +134,7 @@ export default function Home() {
                 <Footprints className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-lg font-bold tracking-tight text-slate-900">PaceCoach</h1>
+                <h1 className="text-lg font-bold tracking-tight text-slate-900">PaceOn</h1>
                 <p className="text-xs text-slate-500 -mt-0.5">智能长跑训练指导</p>
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
           <p className="flex items-center gap-1.5">
             <Sparkles className="h-3 w-3 text-emerald-500" />
-            PaceCoach · 由 Z.ai VLM + LLM 驱动 · 科学周期化训练
+            PaceOn · 由 Z.ai VLM + LLM 驱动 · 科学周期化训练
           </p>
           <p>训练数据本地存储，AI 仅用于分析与建议</p>
         </div>
@@ -378,7 +378,7 @@ function DashboardView({ week, runner, onUploadClick, refresh }: {
                 className="h-7 text-xs border-slate-200 text-slate-600 hover:bg-slate-50 gap-1"
                 onClick={() => {
                   const md = weekToMarkdown(week, runner)
-                  downloadTextFile(md, `PaceCoach-Week${week.weekNumber ?? '?'}-${new Date(week.weekStart).toISOString().slice(0, 10)}.md`)
+                  downloadTextFile(md, `PaceOn-Week${week.weekNumber ?? '?'}-${new Date(week.weekStart).toISOString().slice(0, 10)}.md`)
                 }}
               >
                 <Download className="h-3 w-3" />Markdown

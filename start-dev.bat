@@ -1,13 +1,13 @@
 @echo off
 chcp 65001 >nul
-title PaceCoach - Full Version Development Server
+title PaceOn - Full Version Development Server
 
 set "SCRIPT_DIR=%~dp0"
 set "PROJECT_DIR=%SCRIPT_DIR%"
 set "PORT=3000"
 
 echo ==========================================
-echo 🚀 启动 PaceCoach 完整版开发服务器
+echo 🚀 启动 PaceOn 完整版开发服务器
 echo ==========================================
 echo.
 
@@ -52,7 +52,7 @@ echo ==========================================
 start "" http://localhost:%PORT%
 
 echo.
-echo 🎉 PaceCoach 完整版已启动!
+echo 🎉 PaceOn 完整版已启动!
 echo 💡 浏览器窗口应该会自动打开
 echo 💡 按 Ctrl+C 停止服务器
 echo ==========================================

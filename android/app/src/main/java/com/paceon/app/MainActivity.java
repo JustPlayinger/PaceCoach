@@ -1,4 +1,4 @@
-package com.pacecoach.app;
+package com.paceon.app;
 
 import com.getcapacitor.BridgeActivity;
 

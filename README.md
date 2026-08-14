@@ -1,26 +1,31 @@
-# PaceCoach · 智能长跑训练指导系统
+# PaceOn · 中长跑训练助手
 
-> AI 驱动的长跑训练助手 —— 课表管理、训练数据智能识别、AI 点评与课表生成、全方位训练数据分析
+面向跑步爱好者的训练管理工具，支持 5K / 10K / 半马 / 全马目标。核心功能：
 
-PaceCoach 是一个面向长跑爱好者（5K / 10K / 半马 / 全马）的智能训练指导系统。AI 层全部基于 **DeepSeek API**（文本对话/点评/课表生成）。由于 DeepSeek 无多模态能力，截图识图采用**双路径**：优先通过本地 **DsBridge 多模态网关**（OCR/视觉模型 → 文本 → DeepSeek），网关不可用时自动降级为内置 **tesseract.js OCR + 模板解析**。支持桌面版（Electron）与 Android APK。
+- 通过对话了解个人情况后生成训练课表，逐周安排跑步与力量训练
+- 上传跑步 App 截图自动识别训练数据（华为运动健康 / Garmin / Strava / Keep 等）
+- 记录每次训练完成情况，生成训练点评并据此调整后续计划
+- 提供 Windows 桌面版与 Android 应用
 
-## ✨ 核心特性
+模型能力基于 DeepSeek API。由于 DeepSeek 不支持图片输入，截图识图采用两种方式：优先通过本地 DsBridge 网关（可读取折线图，识别更完整），网关不可用时自动使用内置 tesseract.js OCR。
 
-### 🤖 AI 智能能力（5 大）
-- **截图识图（双路径）**：上传跑步 App 长图（华为运动健康/Garmin/Strava/Keep 等），自动提取距离、时长、配速、心率、步频、步幅、爬升、卡路里、VO2max、心率恢复、触地时间、垂直振幅、左右平衡等 20+ 项数据
-  - **路径① DsBridge 网关**（推荐）：本地 OpenAI 兼容网关，图片 → OCR/视觉模型（可读折线图）→ 文本 → DeepSeek，识别最完整
-  - **路径② 内置 OCR 兜底**：tesseract.js（中文+英文）服务端识别 + 模板/正则解析，离线可用、零额外依赖
-- **折线图趋势识别**：DsBridge 路径下可提取心率/配速/步频/海拔曲线（15-25 个采样点）并生成趋势分析描述
-- **LLM 训练点评**：对比计划与实际完成，分析完成度、强度匹配、心率区间、疲劳管理，给出评分与建议
-- **LLM 课表生成**：基于跑者档案 + 目标赛事 + 上周完成情况 + 上周点评，周期化生成下周训练课表；支持本周微调
-- **🆕 对话式课表生成**：与 AI 教练自由对话，AI 主动询问身体状况、停跑恢复、伤病、时间安排等特殊情况，收集完整信息后生成量身定制的个性化课表
+## ✨ 功能一览
+
+### 🏃 训练管理
+- **截图识图（双路径）**：上传跑步 App 长图（华为运动健康/Garmin/Strava/Keep 等），提取距离、时长、配速、心率、步频、步幅、爬升、卡路里、VO2max、心率恢复、触地时间、垂直振幅、左右平衡等 20+ 项数据
+  - **路径① DsBridge 网关**：本地网关，图片 → OCR/视觉模型（可读折线图）→ 文本 → DeepSeek
+  - **路径② 内置 OCR 兜底**：tesseract.js（中文+英文）识别 + 模板/正则解析，离线可用
+- **折线图趋势**：DsBridge 路径下可提取心率/配速/步频/海拔曲线（15-25 个采样点）并生成趋势描述
+- **训练点评**：对比计划与实际完成，分析完成度、强度匹配、心率区间、疲劳管理，给出评分与建议
+- **课表生成**：基于跑者档案 + 目标赛事 + 上周完成情况 + 上周点评，生成下周训练课表；支持本周微调
+- **对话式课表生成**：与教练对话，说明身体状况、停跑恢复、伤病、时间安排等情况后，生成个性化课表
 
 ### 📊 17 大功能模块
 | 模块 | 功能 |
 |------|------|
 | 🏠 本周课表 | 今日训练焦点卡片 + 赛事倒计时 + 周概览进度环 + 每日训练卡片（含编辑/热身指导） |
-| 📤 上传数据 | 拖拽上传截图 + AI 智能识别 + 可编辑表单 + 5 类折线图可视化 + 数据校验 + 跑鞋关联 |
-| 🧠 AI 点评 | 生成本周点评（含折线图趋势分析）+ **🆕 对话式课表生成** + 快速生成 + 本周微调 |
+| 📤 上传数据 | 拖拽上传截图 + 自动识别 + 可编辑表单 + 5 类折线图可视化 + 数据校验 + 跑鞋关联 |
+| 🧠 训练点评 | 生成本周点评（含折线图趋势分析）+ **🆕 对话式课表生成** + 快速生成 + 本周微调 |
 | 📈 趋势分析 | 周跑量/配速/心率/RPE/体感趋势图 + 训练类型分布 + 心率区间分布 + 完成率 |
 | 🛡️ 负荷管理 | ACWR 急性/慢性负荷比 + 5 档伤病预警 + 周负荷趋势 + 跑量vs负荷对比 |
 | 🔀 训练对比 | 两次训练数据对比 + 心率/配速曲线对比 + 进步总结 |
@@ -33,15 +38,15 @@ PaceCoach 是一个面向长跑爱好者（5K / 10K / 半马 / 全马）的智�
 | 🧮 配速计算器 | 基于目标成绩计算 8 个训练区间配速（恢复/轻松/长跑/马拉松/节奏/阈值/间歇/重复）|
 | 🎖️ 成就系统 | 27 个成就徽章（距离/坚持/时长/特殊 4 类）+ 进度追踪 + 激励 |
 | 🔍 全局搜索 | ⌘K 快捷键 + 跨训练/跑鞋/PB/恢复记录搜索 + 键盘导航 + Tab 跳转 |
-| 📜 历史归档 | 按周列表 + 详情视图（统计/AI 点评/每日对比）|
+| 📜 历史归档 | 按周列表 + 详情视图（统计/训练点评/每日对比）|
 | 👤 跑者档案 | 基本信息/生理指标(含 Karvonen 心率区间)/训练目标/备注 |
-| 💾 数据管理 | JSON 导出备份 + 导入恢复 + **🆕 AI 配置状态** + 清空数据 |
+| 💾 数据管理 | JSON 导出备份 + 导入恢复 + **🆕 模型配置** + 清空数据 |
 
 ### 🎯 训练细节增强
 - **今日训练焦点卡片**：渐变 Hero 卡片，三态配色（待完成橙红脉冲/已完成翠绿/休息日深灰）
 - **赛事实时倒计时**：每秒更新，5 档紧迫度配色（比赛日/比赛周/冲刺/备战/长期）
 - **热身/冷身指导**：根据训练类型动态生成热身步骤、冷身步骤、静态拉伸方案 + 目标心率
-- **单次训练深度分析**：AI 基于折线图趋势做配速/心率/跑姿/体感 5 章节分析
+- **单次训练深度分析**：结合折线图趋势做配速/心率/跑姿/体感 5 章节分析
 - **课表导出**：Markdown 复制 + .md 下载 + 打印 PDF（精美排版）
 - **数据校验**：单字段范围校验 + 跨字段一致性校验（心率/配速/距离）
 
@@ -52,11 +57,11 @@ PaceCoach 是一个面向长跑爱好者（5K / 10K / 半马 / 全马）的智�
 | 框架 | Next.js 16 (App Router) + TypeScript 5 |
 | 样式 | Tailwind CSS 4 + shadcn/ui (New York) + Lucide 图标 |
 | 数据库 | Prisma ORM + SQLite |
-| AI | DeepSeek API（deepseek-chat）+ DsBridge 多模态网关 + tesseract.js OCR |
+| 模型 | DeepSeek API（deepseek-chat）+ DsBridge 多模态网关 + tesseract.js OCR |
 | 桌面端 | Electron（内嵌 Next.js standalone 服务器）|
 | 移动端 | Capacitor + Android（GitHub Actions 构建 APK）|
 | 图表 | Recharts（折线/面积/柱状/饼图/雷达）|
-| Markdown | react-markdown（AI 输出渲染）|
+| Markdown | react-markdown（内容渲染）|
 
 ## 📁 项目结构
 
@@ -67,11 +72,11 @@ src/
 │   │   ├── runner/             # 跑者档案
 │   │   ├── weeks/              # 训练周
 │   │   ├── sessions/           # 训练课
-│   │   ├── extract/            # VLM 图片数据识别
-│   │   ├── review/             # LLM 周点评
-│   │   ├── plan/               # LLM 快速课表生成
+│   │   ├── extract/            # 识图
+│   │   ├── review/             # 周点评
+│   │   ├── plan/               # 快速课表生成
 │   │   ├── chat-plan/          # 🆕 对话式课表生成
-│   │   ├── adjust/             # LLM 本周微调
+│   │   ├── adjust/             # 本周微调
 │   │   ├── stats/              # 跨周统计
 │   │   ├── calendar/           # 月度日历
 │   │   ├── goal/               # 目标进度
@@ -83,7 +88,7 @@ src/
 │   │   ├── compare/            # 训练对比
 │   │   ├── achievements/       # 成就徽章
 │   │   ├── search/             # 全局搜索
-│   │   ├── config/             # 🆕 AI 配置状态
+│   │   ├── config/             # 🆕 模型配置
 │   │   ├── seed/               # 种子数据
 │   │   └── data/               # 导入导出
 │   ├── layout.tsx
@@ -91,8 +96,8 @@ src/
 ├── components/
 │   ├── ui/                     # shadcn/ui 组件
 │   └── views/                  # 25 个视图组件
-│       ├── upload-view.tsx     # 上传数据（VLM 识别 + 折线图）
-│       ├── review-view.tsx     # AI 点评 + 对话式生成入口
+│       ├── upload-view.tsx     # 上传数据（识图 + 折线图）
+│       ├── review-view.tsx     # 训练点评 + 对话式生成入口
 │       ├── chat-plan-view.tsx  # 🆕 对话式课表生成
 │       ├── trends-view.tsx     # 趋势分析
 │       ├── load-view.tsx       # 负荷管理(ACWR)
@@ -108,16 +113,16 @@ src/
 │       ├── global-search.tsx         # 全局搜索
 │       ├── history-view.tsx    # 历史归档
 │       ├── profile-view.tsx    # 跑者档案
-│       ├── data-view.tsx       # 数据管理 + AI 配置状态
+│       ├── data-view.tsx       # 数据管理 + 模型配置
 │       ├── session-edit-dialog.tsx       # 课表编辑
-│       ├── session-detail-dialog.tsx     # 单次训练详情 + AI 分析
+│       ├── session-detail-dialog.tsx     # 单次训练详情 + 分析
 │       ├── warmup-cooldown-dialog.tsx    # 热身冷身指导
 │       ├── race-countdown.tsx            # 赛事倒计时
 │       ├── progress-ring.tsx             # 进度环
 │       └── export-utils.ts               # 导出工具
 ├── lib/
-│   ├── ai.ts                   # AI 能力库（VLM + LLM + 对话式生成）
-│   ├── ai-config.ts            # 🆕 AI 配置加载器（环境变量支持）
+│   ├── ai.ts                   # 模型调用库（对话/点评/课表）
+│   ├── ai-config.ts            # 🆕 模型配置加载器（环境变量支持）
 │   ├── db.ts                   # Prisma client
 │   ├── training.ts             # 训练类型/格式化工具
 │   ├── templates.ts            # 训练计划模板数据
@@ -135,7 +140,7 @@ src/
 | TrainingWeek | 训练周（周期/阶段/目标）|
 | TrainingSession | 训练课（计划距离/配速/强度/描述）|
 | TrainingCompletion | 完成记录（实际数据 + rawExtract 折线图 + shoeId）|
-| AIReview | AI 点评/计划/对话记录 |
+| AIReview | 训练点评/计划/对话记录 |
 | Shoe | 跑鞋（品牌/寿命/里程）|
 | ShoeUsage | 跑鞋使用记录（关联完成记录）|
 | RecoveryLog | 每日恢复记录（睡眠/补水/体感）|
@@ -158,37 +163,29 @@ bun run db:generate  # 生成 Prisma Client
 ### 首次使用
 1. 访问 `http://localhost:3000`，系统自动初始化示例跑者与本周课表
 2. 前往「跑者档案」填写你的真实信息（姓名/心率/目标赛事等）
-3. 在「上传数据」上传训练 App 截图，点击「AI 智能识别数据」
+3. 在「上传数据」上传训练 App 截图，点击「自动识别数据」
 4. 核对识别结果（可手动修正），保存完成记录
-5. 在「AI 点评」生成本周点评，或点击「对话式生成」与 AI 教练对话制定个性化课表
+5. 在「训练点评」生成本周点评，或点击「对话式生成」与教练对话制定个性化课表
 
 ## 🔧 本地运行与 API 配置
 
-PaceCoach 默认使用 Z.ai 官方 API。你可以通过以下方式自定义 API 端点，便于本地运行或使用其他兼容服务。
-
-### 方式一：环境变量（推荐）
+模型能力使用 DeepSeek API。通过以下方式配置：
 
 在项目根目录创建 `.env` 文件（参考 `.env.example`）：
 
 ```bash
 # 数据库
-DATABASE_URL=file:/home/z/my-project/db/custom.db
+DATABASE_URL=file:./db/custom.db
 
-# AI API 配置（可选 - 覆盖默认 .z-ai-config）
-ZAI_BASE_URL=https://api.z.ai/api/paas/v4
-ZAI_API_KEY=your_api_key_here
+# DeepSeek API Key（在 https://platform.deepseek.com 申请）
+DEEPSEEK_API_KEY=sk-xxx
 
-# 可选：用户标识
-# ZAI_CHAT_ID=
-# ZAI_USER_ID=
+# 可选：识图网关地址（本地 DsBridge，图片→OCR/视觉→文本→DeepSeek）
+DEEPSEEK_VISION_API_URL=http://127.0.0.1:8901/v1/chat/completions
 ```
 
-设置环境变量后，应用启动时会自动生成 `.z-ai-config` 文件，SDK 将使用你指定的 API 端点。
-
-### 方式二：配置文件
-
-在项目根目录创建 `.z-ai-config` 文件（参考 `.z-ai-config.example`）：
-> ⚠️ 该机制为兼容 Z.ai 时代的遗留，现版本已迁移到 DeepSeek，一般无需配置。
+- 识图优先走本地 DsBridge 网关；网关不可达时自动使用内置 tesseract.js OCR
+- 移动端「离线模式」下，DeepSeek key 保存在手机本地（localStorage），数据存手机 SQLite，无需服务器
 
 ### 配置优先级（从高到低）
 1. **环境变量** `DEEPSEEK_API_KEY` / `DEEPSEEK_API_URL` / `DEEPSEEK_VISION_API_URL`
@@ -196,14 +193,14 @@ ZAI_API_KEY=your_api_key_here
 
 ### 查看当前配置
 
-在「数据管理」Tab 可查看当前 AI 配置状态（配置来源、API 端点，apiKey 脱敏），或访问 `GET /api/config`。
+在「数据管理」Tab 可查看当前模型配置（配置来源、API 端点，apiKey 脱敏），或访问 `GET /api/config`。
 
 ### 本地部署步骤
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/JustPlayinger/PaceCoach.git
-cd PaceCoach
+git clone https://github.com/JustPlayinger/PaceOn.git
+cd PaceOn
 
 # 2. 安装依赖
 bun install
@@ -227,11 +224,11 @@ bun run dev
 ```powershell
 # 打包桌面版（Windows）
 powershell -ExecutionPolicy Bypass -File scripts/build-desktop.ps1
-# 产物：desktop/release/PaceCoach Setup 1.0.0.exe（安装包） + PaceCoach 1.0.0.exe（便携版）
+# 产物：desktop/release/PaceOn Setup 1.0.0.exe（安装包） + PaceOn 1.0.0.exe（便携版）
 ```
 
 - 首次启动会弹出设置窗口，填写 DeepSeek API Key（本地保存）
-- 数据库与配置存放在 `%APPDATA%\PaceCoach`（可写目录，升级不丢数据）
+- 数据库与配置存放在 `%APPDATA%\PaceOn`（可写目录，升级不丢数据）
 - 截图识图：本机运行 DsBridge 网关后识别最完整；否则自动用内置 OCR
 
 ## 📱 Android APK
@@ -241,7 +238,7 @@ APK 支持**两种运行模式**（首次使用在「数据管理」Tab 选择�
 | 模式 | 数据 | AI/识图 | 网络要求 |
 |------|------|---------|----------|
 | **离线模式**（默认，推荐） | 手机本地 SQLite（sql.js + IndexedDB） | DeepSeek 直连 + 手机本地 OCR（tesseract.js） | 仅调用 DeepSeek 时需联网 |
-| 远程服务器模式 | 服务器 SQLite | 服务器端处理 | 需部署 PaceCoach 后端 |
+| 远程服务器模式 | 服务器 SQLite | 服务器端处理 | 需部署 PaceOn 后端 |
 
 - **离线模式**：装 APK → 首次填 DeepSeek API Key（存本地）→ 之后完全本地运行，无需服务器。课表/点评/对话/识图全部可用（识图用手机本地 OCR + DeepSeek 文本解析）。
 - 数据可通过「数据管理」导出 JSON 备份/导入。
@@ -259,7 +256,7 @@ bash scripts/build-android.sh
 
 ## 🖼️ 截图识图（DeepSeek 无多模态的解决方案）
 
-DeepSeek API 官方不支持图片输入。PaceCoach 采用双路径：
+DeepSeek API 官方不支持图片输入。PaceOn 采用双路径：
 
 | 路径 | 原理 | 优点 | 依赖 |
 |------|------|------|------|
@@ -272,7 +269,7 @@ DeepSeek API 官方不支持图片输入。PaceCoach 采用双路径：
 
 ### 对话式课表生成（新）
 
-1. 进入「AI 点评」Tab，点击「对话式生成」按钮
+1. 进入「训练点评」Tab，点击「对话式生成」按钮
 2. 像和真人教练聊天一样，描述你的情况：
    - 身体状况：伤病、疲劳、不适
    - 停跑恢复：停跑多久、恢复情况
@@ -287,7 +284,7 @@ DeepSeek API 官方不支持图片输入。PaceCoach 采用双路径：
 1. 在跑步 App（华为运动健康/Garmin/Strava/Keep 等）完成训练后，截图保存训练详情长图
 2. 进入「上传数据」Tab，选择对应训练课
 3. 拖拽或点击上传截图
-4. 点击「AI 智能识别数据」，VLM 将自动提取：
+4. 点击「自动识别数据」，VLM 将自动提取：
    - 基础数据：距离/时长/配速/心率/步频/步幅/爬升/卡路里
    - 跑姿数据：VO2max/心率恢复/触地时间/垂直振幅/左右平衡
    - 折线图：心率曲线/配速曲线/步频曲线/海拔曲线/分段配速（各 15-25 点）
@@ -297,7 +294,7 @@ DeepSeek API 官方不支持图片输入。PaceCoach 采用双路径：
 7. 保存完成记录
 
 ### AI 训练点评
-- 完成至少一次训练后，在「AI 点评」点击「生成本周点评」
+- 完成至少一次训练后，在「训练点评」点击「生成本周点评」
 - AI 将分析：完成度、强度匹配、**折线图趋势**（心率漂移/配速稳定性/步频变化）、心率区间、疲劳管理
 - 点评含 0-100 评分 + markdown 详细分析 + 可执行建议
 - 可继续点击「快速生成课表」或「对话式生成」制定下周计划
@@ -310,11 +307,11 @@ DeepSeek API 官方不支持图片输入。PaceCoach 采用双路径：
 ### 数据备份
 - 在「数据管理」点击「导出 JSON」下载完整备份
 - 可在新环境通过「导入数据」恢复（支持合并/替换模式）
-- 同页可查看 AI 配置状态
+- 同页可查看 模型配置
 
 ## 🔬 折线图趋势分析（核心能力）
 
-PaceCoach 特别重视训练折线图的时间序列数据，认为这些比单一平均值更能反映训练真实状态：
+PaceOn 特别重视训练折线图的时间序列数据，认为这些比单一平均值更能反映训练真实状态：
 
 | 曲线 | 分析维度 |
 |------|---------|
@@ -327,13 +324,13 @@ PaceCoach 特别重视训练折线图的时间序列数据，认为这些比单�
 VLM 识别的折线图数据会：
 1. 在「上传数据」可视化展示（5 条曲线图）
 2. 存入 `rawExtract` 字段持久化
-3. 在「AI 点评」解析后传给 LLM，生成专门的「折线图趋势分析」章节
+3. 在「训练点评」解析后传给 LLM，生成专门的「折线图趋势分析」章节
 4. 在「单次训练详情」的 AI 深度分析中作为核心参考
 5. 在「训练对比」中对比两次训练的曲线变化
 
 ## 📱 移动端打包（Android APK）
 
-PaceCoach 支持 PWA 和 Capacitor 两种移动端方案。
+PaceOn 支持 PWA 和 Capacitor 两种移动端方案。
 
 > 📖 **完整打包指南**：请阅读 [MOBILE_BUILD_GUIDE.md](./MOBILE_BUILD_GUIDE.md) —— 含环境准备、代码拉取、构建、安装到手机的全流程详细步骤。
 
@@ -386,8 +383,8 @@ cd android
 ```
 
 **Capacitor 配置**（`capacitor.config.ts`）：
-- appId: `com.pacecoach.app`
-- 应用名：PaceCoach
+- appId: `com.paceon.app`
+- 应用名：PaceOn
 - 启动画面：emerald 绿色背景
 - 状态栏：深色主题 + emerald 背景
 - 键盘：自动调整布局
@@ -406,4 +403,4 @@ cd android
 
 ---
 
-**PaceCoach** · 由 Z.ai VLM + LLM 驱动 · 科学周期化训练
+**PaceOn** · 由 Z.ai VLM + LLM 驱动 · 科学周期化训练

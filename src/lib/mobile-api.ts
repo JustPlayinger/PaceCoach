@@ -16,7 +16,7 @@ const DEFAULT_API_BASE = ''
  */
 export function getApiBase(): string {
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('pacecoach-api-base')
+    const stored = localStorage.getItem('paceon-api-base')
     if (stored) return stored
   }
   return process.env.NEXT_PUBLIC_API_BASE || DEFAULT_API_BASE
@@ -28,9 +28,9 @@ export function getApiBase(): string {
 export function setApiBase(url: string): void {
   if (typeof window !== 'undefined') {
     if (url) {
-      localStorage.setItem('pacecoach-api-base', url)
+      localStorage.setItem('paceon-api-base', url)
     } else {
-      localStorage.removeItem('pacecoach-api-base')
+      localStorage.removeItem('paceon-api-base')
     }
   }
 }

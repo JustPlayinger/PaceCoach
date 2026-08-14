@@ -1,4 +1,4 @@
-// Prisma schema for PaceCoach - 智能长跑训练指导系统
+// Prisma schema for PaceOn - 智能长跑训练指导系统
 
 generator client {
   provider = "prisma-client-js"

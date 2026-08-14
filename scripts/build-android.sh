@@ -1,5 +1,5 @@
 #!/bin/bash
-# PaceCoach Android 打包脚本
+# PaceOn Android 打包脚本
 # 使用方法: bash scripts/build-android.sh
 #
 # 前置条件:
@@ -15,7 +15,7 @@
 
 set -e
 
-echo "🏃 PaceCoach Android 打包"
+echo "🏃 PaceOn Android 打包"
 echo "========================="
 
 # 检查依赖
