@@ -189,28 +189,31 @@ ${PLAN_PROMPT}`
   try { return parsePlanResult(await callDeepseekApi(userPrompt)) }
   catch { return buildPlan(runner, runner.weeklyMileage ?? 40, 'base', 1) }
 }
-const CHAT_SYSTEM_PROMPT = `你是一位资深的长跑教练，正在通过对话了解跑者的具体情况，以便为其制定个性化的训练课表。
+const CHAT_SYSTEM_PROMPT = `你是一位资深的长跑教练，正在通过对话了解跑者的具体情况，以便为其制定个性化训练课表。你要像真人教练一样，尽可能全面地收集信息、持续追问，直到掌握足够细节。
 
-你需要了解以下关键信息（如跑者档案已有则无需重复询问）：
-1. 身体状况：当前是否有伤病、疲劳、不适？
-2. 近期训练：最近是否有停跑？停跑多久？
-3. 训练目标：目标赛事（5K/10K/半马/全马）、目标日期、目标成绩
-4. 当前水平：最近一次长跑距离与配速、周跑量、训练频率
-5. 时间安排：每周能训练几天？
-6. 特殊情况：体重变化、睡眠、工作压力、环境（高原/高温）
-7. 跑者偏好：喜欢的训练类型
+== 需要收集的信息（跑者档案已有的可跳过，但对话中新的信息优先） ==
+1. 身体与伤病：当前是否有伤病、疼痛、疲劳？最近是否停跑？停跑多久？恢复训练多久了？有无慢性疾病？
+2. 训练目标：目标赛事（5K/10K/半马/全马）、目标日期、目标成绩；或近期想达到的水平
+3. 当前水平：最近一次长跑的距离与配速、当前周跑量、每周训练次数、跑步年限
+4. 时间安排：每周能训练几天？每次大概多久？偏好的时间段？有无固定休息日？
+5. 训练偏好：喜欢/抵触的训练类型（间歇/节奏/长距离/力量）？有无健身房？
+6. 恢复与生活：睡眠情况、饮食、工作压力、久坐或体力劳动？
+7. 环境因素：高原/高温/严寒/多坡道？常在什么场地跑？
+8. 历史参考：最近一次比赛成绩？有没有心率手表/跑步手表？
 
-对话原则：
-- 每次只问 1-2 个关键问题
-- 语气亲切专业
-- 收集足够信息（至少 4-5 个维度）后回复以 "[READY]" 开头
+== 对话要求 ==
+- 每轮只问 1-2 个关键问题，根据跑者回答深入追问，不一次性轰炸
+- 跑者已回答的信息不再重复问，只追问缺失的维度
+- 至少收集 6-8 个维度的信息后才算信息充分
+- 语气亲切专业，像真人教练聊天
+- 信息齐全后，回复以 "[READY]" 开头表示可以生成课表了
 - 若跑者信息与档案冲突，以对话中的新信息为准
 
 请以 JSON 格式返回（只返回 JSON）：
 {
-  "reply": "你的回复内容（对话式）",
+  "reply": "你的回复内容（对话式，亲切专业）",
   "ready": false 或 true,
-  "questions": ["问题1", "问题2"]
+  "questions": ["问题1", "问题2"]（ready=true 时为空数组）
 }`
 
 function parseChatResult(content: string): { reply: string; ready: boolean; questions: string[] } {
@@ -221,26 +224,34 @@ function parseChatResult(content: string): { reply: string; ready: boolean; ques
 }
 
 export async function chatWithCoach(runner: RunnerProfile | null, history: ChatMessage[], currentMessage: string): Promise<{ reply: string; ready: boolean; questions: string[] }> {
+  const cfg = getDeepseekConfig()
+  if (!cfg.apiKey) {
+    return { reply: '⚠️ 尚未配置 DeepSeek API Key。请到「数据管理」→「离线模式」填写 API Key 后再开始对话（Key 仅保存在本机）。', ready: false, questions: [] }
+  }
   const conversationContext = history.map((m) => `${m.role === 'user' ? '跑者' : '教练'}：${m.content}`).join('\n')
   const runnerInfo = runner ? `跑者档案：${JSON.stringify(runner, null, 2)}` : '暂无跑者档案'
   try {
-    const cfg = getDeepseekConfig()
     const res = await fetch(cfg.apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.apiKey}` },
-      body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT }, ...history, { role: 'user', content: `${runnerInfo}\n\n== 对话历史 ==\n${conversationContext || '（刚开始对话）'}\n\n== 跑者最新消息 ==\n${currentMessage}\n\n请根据以上信息回复。` }], temperature: 0.7, max_tokens: 1000 }),
+      body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT }, ...history, { role: 'user', content: `${runnerInfo}\n\n== 对话历史 ==\n${conversationContext || '（刚开始对话）'}\n\n== 跑者最新消息 ==\n${currentMessage}\n\n请根据以上信息回复。` }], temperature: 0.7, max_tokens: 1200 }),
     })
-    if (!res.ok) throw new Error('DeepSeek API 错误 ' + res.status)
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      return { reply: `⚠️ 对话请求失败（${res.status}）。请检查 DeepSeek API Key 是否正确、账户是否有余额、网络是否可用。${errText.slice(0, 120)}`, ready: false, questions: [] }
+    }
     const data = await res.json()
     return parseChatResult(data.choices?.[0]?.message?.content || '')
-  } catch { return { reply: '感谢你的信息！我已经了解了你的情况。', ready: true, questions: [] } }
+  } catch (e) {
+    return { reply: '⚠️ 网络或服务异常，对话未完成，请稍后重试。', ready: false, questions: [] }
+  }
 }
 export async function generatePlanFromChat(runner: RunnerProfile | null, chatHistory: ChatMessage[], lastWeekSessions?: SessionForReview[], lastReview?: string | null): Promise<PlanResult> {
   const conversationSummary = chatHistory.map((m) => `${m.role === 'user' ? '跑者' : '教练'}：${m.content}`).join('\n')
   const runnerInfo = runner ? `跑者档案：${JSON.stringify(runner, null, 2)}` : '无跑者档案'
-  const lastWeekInfo = lastWeekSessions && lastWeekSessions.length > 0 ? `上周训练完成情况：${JSON.stringify(lastWeekSessions, null, 2)}` : '无上周训练数据'
+  const lastWeekInfo = lastWeekSessions && lastWeekSessions.length > 0 ? `上周训练完成情况：${JSON.stringify(lastWeekSessions, null, 2)}` : '无上周训练数据（这是初始课表）'
   const reviewInfo = lastReview ? `上周 AI 点评：${lastReview}` : '无上周点评'
-  const userPrompt = `${runnerInfo}\n\n== 对话记录（含跑者特殊情况与诉求）==\n${conversationSummary}\n\n== 上周训练数据 ==\n${lastWeekInfo}\n${reviewInfo}\n\n请基于以上所有信息（特别是跑者提到的身体状况、停跑恢复等特殊情况），生成下周训练课表。\n1. 一周 7 天，dayOfWeek: 1=周一 ... 6=周六, 0=周日\n2. 严格遵循对话中的特殊情况\n3. 合理安排休息日\n4. 配速基于目标成绩与当前水平\n5. 每节课给出明确训练内容描述\n6. weekGoal 体现特殊情况\n\n请严格按以下 JSON 格式返回：\n{"weekGoal": "...", "phase": "base|build|peak|taper|recovery", "summary": "...", "sessions": [{"dayOfWeek": 0-7, "type": "easy|tempo|interval|long|recovery|rest|cross", "plannedDistance": 数字或null, "plannedDuration": 数字或null, "plannedPace": "5:30/km" 或 null, "intensity": "Z1-Z5|rest", "description": "..."}]}`
+  const userPrompt = `${runnerInfo}\n\n== 对话记录（含跑者提供的实际情况：身体状态、伤病、目标、周跑量、每周可训练天数、训练偏好、特殊环境等）==\n${conversationSummary}\n\n== 上周训练数据 ==\n${lastWeekInfo}\n${reviewInfo}\n\n请基于以上所有信息（以对话中跑者的实际情况为准）生成下周训练课表，要求：\n1. 一周 7 天全部列出，dayOfWeek: 1=周一 ... 6=周六, 0=周日\n2. 训练天数/频率与跑者可训练天数一致，其余为 rest 或 cross\n3. 周跑量循序渐进：若跑者给出周跑量则以其为基准，未给出则按"当前水平合理估算"，绝不超量\n4. 若有伤病/刚恢复：大幅降低强度与跑量，多安排 recovery，必要时以 cross 代替跑步\n5. 若跑者是新手/目标明确（如 sub4 全马）：课表要匹配其水平和目标，配速合理、可执行\n6. 结合跑者偏好：喜欢的训练类型（间歇/节奏/长距离）可侧重，抵触的减少\n7. 每节课给出明确的训练内容描述（距离/配速/组数/强度）\n8. weekGoal 一句话概括本周重点，体现跑者的特殊情况（如"膝伤恢复期，低强度稳步提升"）\n9. 力量训练：若跑者需要或安排 cross 课时，description 中写明具体力量动作（如深蹲/弓步蹲/硬拉/核心/臀腿等）与组数次数\n\n请严格按以下 JSON 格式返回（不要输出 JSON 之外的内容）：\n{"weekGoal": "...", "phase": "base|build|peak|taper|recovery", "summary": "...", "sessions": [{"dayOfWeek": 0-7, "type": "easy|tempo|interval|long|recovery|rest|cross", "plannedDistance": 数字或null, "plannedDuration": 数字或null, "plannedPace": "5:30/km" 或 null, "intensity": "Z1-Z5|rest", "description": "..."}]}`
   try { return parsePlanResult(await callDeepseekApi(userPrompt)) }
   catch { return buildPlan(runner || { name: '跑者' }, runner?.weeklyMileage ?? 40, 'base', 1) }
 }
