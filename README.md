@@ -236,7 +236,15 @@ powershell -ExecutionPolicy Bypass -File scripts/build-desktop.ps1
 
 ## 📱 Android APK
 
-APK 为纯前端客户端（静态导出），所有数据/AI/OCR 请求转发到**远程 PaceCoach 服务器**（首次使用在「数据管理」Tab 配置服务器地址，如 `https://your-server.com` 或局域网 `http://192.168.x.x:3000`）。
+APK 支持**两种运行模式**（首次使用在「数据管理」Tab 选择）：
+
+| 模式 | 数据 | AI/识图 | 网络要求 |
+|------|------|---------|----------|
+| **离线模式**（默认，推荐） | 手机本地 SQLite（sql.js + IndexedDB） | DeepSeek 直连 + 手机本地 OCR（tesseract.js） | 仅调用 DeepSeek 时需联网 |
+| 远程服务器模式 | 服务器 SQLite | 服务器端处理 | 需部署 PaceCoach 后端 |
+
+- **离线模式**：装 APK → 首次填 DeepSeek API Key（存本地）→ 之后完全本地运行，无需服务器。课表/点评/对话/识图全部可用（识图用手机本地 OCR + DeepSeek 文本解析）。
+- 数据可通过「数据管理」导出 JSON 备份/导入。
 
 ```bash
 # 方式一：GitHub Actions 自动构建（推荐，无需本地 Android SDK）
@@ -247,7 +255,7 @@ bash scripts/build-android.sh
 # 产物：android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-> ⚠️ APK 需要搭配已部署的 PaceCoach 后端使用（可部署在任意 VPS，或本机通过内网穿透暴露）。
+> 离线模式为纯前端实现：数据用 sql.js（SQLite WASM）存手机本地，AI 用 DeepSeek 浏览器直连（CORS 已验证），OCR 用 tesseract.js（chi_sim+eng 语言包已打包进 APK）。
 
 ## 🖼️ 截图识图（DeepSeek 无多模态的解决方案）
 
