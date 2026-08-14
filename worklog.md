@@ -940,3 +940,9 @@ Stage Summary:
 4. 训练目标进度追踪（距目标赛事剩余周数、当前预估完赛时间）
 5. 多用户支持（NextAuth + 数据隔离）
 6. 移动端 PWA 适配（离线查看课表）
+
+## 2026-08-14 · 项目改名 PaceOn + GitHub Release + 文案去 AI 味
+- 项目/仓库/应用改名为 PaceOn（GitHub: JustPlayinger/PaceOn），Android 包名 com.paceon.app
+- README 去除营销味措辞（AI 驱动/智能等改朴素描述），清理 Z.ai 残留配置说明
+- 创建 GitHub Release v1.0.0，附 PaceOn-v1.0.0.apk（CI 构建）
+- 修复：.gitignore 误改目录名导致 pacecoach-lite 被误提交为 gitlink
