@@ -229,7 +229,16 @@ powershell -ExecutionPolicy Bypass -File scripts/build-desktop.ps1
 
 - 首次启动会弹出设置窗口，填写 DeepSeek API Key（本地保存）
 - 数据库与配置存放在 `%APPDATA%\PaceOn`（可写目录，升级不丢数据）
-- 截图识图：本机运行 DsBridge 网关后识别最完整；否则自动用内置 OCR
+- 截图识图：设置里勾选「随 PaceOn 自动启动」后，应用会自动拉起内置 DsBridge 网关
+
+### 发布桌面版到 GitHub Release
+
+桌面版安装包约 306MB（内含 DsBridge 识图网关）。本地网络对超大文件上传可能受限，换网络后可一键上传：
+
+```powershell
+set GITHUB_TOKEN=你的token
+python scripts/upload-release-asset.py
+```
 
 ## 📱 Android APK
 
